@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Spy Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="dark-theme">
+  <div class="bg-particle"></div>
+  <div class="bg-particle"></div>
+  <div class="bg-particle"></div>
+  <div class="bg-particle"></div>
+  <div class="bg-particle"></div>
+  <div class="bg-particle"></div>
+  <main class="main-container">
+    <div class="header-center">
+      <h1>Spy Game</h1>
+    </div>
+    <div id="themeToggle"></div>
+    <div class="play-section">
+      <h2>Quick Play</h2>
+      <div class="avatar">
+        <span class="avatar-icon">👤</span>
+      </div>
+      <div class="input-group">
+        <label><span class="icon">👤</span><span class="text">Nickname:</span><input id="nickname" type="text" value="User1234"></label>
+      </div>
+      <div class="input-group">
+        <label><span class="icon">🌐</span><span class="text">Language:</span> 
+          <select id="language">
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+          </select>
+        </label>
+      </div>
+      <div class="button-group">
+        <button id="connectButton" class="button button-secondary">Connect</button>
+        <button id="createRoom" class="button button-primary">Create Room</button>
+      </div>
+      <div class="login-button-container">
+        <button id="loginButton" class="button button-secondary">Log In</button>
+      </div>
+    </div>
+    <div class="divider">
+      <span>OR</span>
+    </div>
+    <div class="login-section">
+      <h2>Log In Here</h2>
+      <div class="social-buttons">
+        <button class="social-button google"><img src="/google-icon.png" alt="Google"> Google</button>
+        <button class="social-button vk"><img src="/vk-icon.png" alt="VK"> VK</button>
+        <button class="social-button yandex"><img src="/yandex-icon.png" alt="Yandex"> Yandex</button>
+      </div>
+    </div>
+    <div id="loginPopup" class="popup">
+      <div class="popup-content">
+        <span id="closePopup" class="close">×</span>
+        <h2>Log In Here</h2>
+        <div class="social-buttons">
+          <button class="social-button google"><img src="/google-icon.png" alt="Google"> Google</button>
+          <button class="social-button vk"><img src="/vk-icon.png" alt="VK"> VK</button>
+          <button class="social-button yandex"><img src="/yandex-icon.png" alt="Yandex"> Yandex</button>
+        </div>
+      </div>
+    </div>
+    <div id="popupOverlay" class="overlay"></div>
+  </main>
+  <footer>Создано с ❤️ <a href="https://t.me/B4DCAT" target="_blank">Mr Vi</a></footer>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/index.js"></script>
+  <script>
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-theme');
+      localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+    });
+
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.body.classList.remove('dark-theme');
+    }
+
+    const loginButton = document.getElementById('loginButton');
+    const loginPopup = document.getElementById('loginPopup');
+    const closePopup = document.getElementById('closePopup');
+    const popupOverlay = document.getElementById('popupOverlay');
+
+    loginButton.addEventListener('click', () => {
+      loginPopup.classList.add('visible');
+      popupOverlay.classList.add('visible');
+    });
+
+    closePopup.addEventListener('click', () => {
+      loginPopup.classList.remove('visible');
+      popupOverlay.classList.remove('visible');
+    });
+
+    popupOverlay.addEventListener('click', () => {
+      loginPopup.classList.remove('visible');
+      popupOverlay.classList.remove('visible');
+    });
+  </script>
+</body>
+</html>

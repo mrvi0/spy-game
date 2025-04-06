@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title id="pageTitle">Комната</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/room.css">
+</head>
+<body>
+  <div class="bg-particle"></div>
+  <div class="bg-particle"></div>
+  <div class="bg-particle"></div>
+  <div class="bg-particle"></div>
+  <div class="bg-particle"></div>
+  <div class="bg-particle"></div>
+  <main>
+    <h1 id="roomTitle">Комната <span id="roomId"></span></h1>
+    <div id="roomInfo"></div>
+    <div id="gameTimerDisplay"></div>
+    <button id="sidebarToggle" class="button button-secondary" style="display: none;">☰</button>
+    <div id="sidebar">
+      <button id="sidebarClose" class="button button-secondary">✖</button>
+      <h2>Настройки</h2>
+      <label>Название комнаты: <input id="roomName" type="text" value="Безымянная"></label>
+      <label class="tooltip">Макс. игроков: <input id="maxPlayers" type="number" min="2" max="15" value="10"></label>
+      <label>Кол-во шпионов: <input id="spiesCount" type="number" min="1" value="2"></label>
+      <label>Тема локаций:
+        <select id="locationTheme">
+          <option value="default">Обычные</option>
+          <option value="fantasy">Фэнтези</option>
+          <option value="sci-fi">Фантастика</option>
+        </select>
+      </label>
+      <label>Таймер:
+        <select id="gameTimer">
+          <option value="10">10 секунд (тест)</option>
+          <option value="300">5 минут</option>
+          <option value="600" selected>10 минут</option>
+          <option value="900">15 минут</option>
+        </select>
+      </label>
+      <label class="checkbox-container">
+        <input id="spiesKnown" type="checkbox">
+        <span class="checkbox-custom"></span>Шпионы знакомы
+      </label>
+      <button id="saveSettings" class="button">Сохранить настройки</button>
+    </div>
+    <h2>Игроки:</h2>
+    <ul id="players"></ul>
+    <div id="gameControls"></div>
+    <div id="gameCards"></div>
+    <div class="overlay"></div>
+    <div id="gameResult"></div>
+  </main>
+  <div id="themeToggle"></div>
+  <footer>Создано с ❤️ <a href="https://t.me/B4DCAT" target="_blank">Mr Vi</a></footer>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/room.js"></script>
+</body>
+</html>

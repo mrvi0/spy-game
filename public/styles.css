@@ -1,0 +1,807 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+}
+
+body {
+  background: #e6f0fa;
+  color: #2c3e50;
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+
+body.dark-theme {
+  background: #1a1a1a;
+  color: #ecf0f1;
+}
+
+/* Анимации фона */
+.bg-particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: float 20s infinite linear;
+  opacity: 0.4;
+}
+
+.bg-particle:nth-child(1) { top: 5%; left: 10%; width: 8px; height: 8px; background: #8e44ad; animation-duration: 18s; }
+.bg-particle:nth-child(2) { top: 20%; left: 60%; width: 12px; height: 12px; background: #9b59b6; animation-duration: 22s; }
+.bg-particle:nth-child(3) { top: 35%; left: 25%; width: 6px; height: 6px; background: #3498db; animation-duration: 15s; }
+.bg-particle:nth-child(4) { top: 50%; left: 80%; width: 10px; height: 10px; background: #8e44ad; animation-duration: 25s; }
+.bg-particle:nth-child(5) { top: 65%; left: 15%; width: 14px; height: 14px; background: #9b59b6; animation-duration: 20s; }
+.bg-particle:nth-child(6) { top: 80%; left: 70%; width: 7px; height: 7px; background: #3498db; animation-duration: 17s; }
+
+body.dark-theme .bg-particle {
+  background: rgba(255, 255, 255, 0.2);
+  opacity: 0.3;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(40px, 80px); }
+  50% { transform: translate(-20px, 100px); }
+  75% { transform: translate(30px, 60px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Общие стили кнопок */
+.button {
+  display: inline-block;
+  background: #8e44ad;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1em;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s, opacity 0.3s;
+}
+
+.button:hover {
+  background: #9b59b6;
+}
+
+.button:active {
+  opacity: 0.8;
+}
+
+.button:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+}
+
+body.dark-theme .button {
+  background: #9b59b6;
+}
+
+body.dark-theme .button:hover {
+  background: #8e44ad;
+}
+
+body.dark-theme .button:disabled {
+  background: #7f8c8d;
+}
+
+.button-danger {
+  background: #ff3b30;
+}
+
+.button-danger:hover {
+  background: #ff5349;
+}
+
+body.dark-theme .button-danger {
+  background: #ff5349;
+}
+
+body.dark-theme .button-danger:hover {
+  background: #ff3b30;
+}
+
+.button-secondary {
+  background: #e0e0e0;
+  color: #2c3e50;
+}
+
+body.dark-theme .button-secondary {
+  background: #1E3A8A; /* Тёмно-синий с hotellab.io */
+  color: white;
+}
+
+.button-secondary:hover {
+  background: #d0d0d0;
+}
+
+body.dark-theme .button-secondary:hover {
+  background: #15327A; /* Чуть светлее тёмно-синего */
+}
+
+.button-primary {
+  background: #7C3AED; /* Фиолетовый с hotellab.io */
+  color: white;
+  font-weight: bold;
+}
+
+.button-primary:hover {
+  background: #6D31D0; /* Чуть темнее фиолетового */
+}
+
+body.dark-theme .button-primary {
+  background: #7C3AED;
+  color: white;
+}
+
+body.dark-theme .button-primary:hover {
+  background: #6D31D0;
+}
+
+.button-ready {
+  background: #34c759;
+}
+
+.button-ready:hover {
+  background: #40d66b;
+}
+
+body.dark-theme .button-ready {
+  background: #40d66b;
+}
+
+body.dark-theme .button-ready:hover {
+  background: #34c759;
+}
+
+/* Ссылки */
+a {
+  color: #8e44ad;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: #9b59b6;
+}
+
+body.dark-theme a {
+  color: #7C3AED; /* Фиолетовый с hotellab.io */
+}
+
+body.dark-theme a:hover {
+  color: #6D31D0;
+}
+
+/* Переключатель темы */
+#themeToggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 50px;
+  height: 24px;
+  background: #bdc3c7;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#themeToggle::before {
+  content: '☀️';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: transform 0.3s;
+}
+
+body.dark-theme #themeToggle {
+  background: #7f8c8d;
+}
+
+body.dark-theme #themeToggle::before {
+  content: '🌙';
+  transform: translateX(26px);
+}
+
+/* Сайдбар */
+#sidebar {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 300px;
+  height: 100%;
+  background: #fff;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease;
+  z-index: 1000;
+}
+
+#sidebar.open {
+  left: 0;
+}
+
+body.dark-theme #sidebar {
+  background: #34495e;
+}
+
+#sidebarToggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  font-size: 1.5em;
+  line-height: 40px;
+  text-align: center;
+}
+
+#sidebarClose {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  font-size: 1.2em;
+  line-height: 30px;
+}
+
+/* Тултип */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: 'Максимум 15 игроков';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2c3e50;
+  color: #ecf0f1;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.8em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+body.dark-theme .tooltip::after {
+  background: #ecf0f1;
+  color: #2c3e50;
+}
+
+.tooltip.invalid::after {
+  opacity: 1;
+}
+
+/* Окно результата */
+#gameResult {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 80%;
+  width: 400px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 2000;
+}
+
+#gameResult.visible {
+  opacity: 1;
+}
+
+body.dark-theme #gameResult {
+  background: rgba(52, 73, 94, 0.95);
+}
+
+#gameResult button {
+  margin-top: 20px;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 1999;
+  pointer-events: none;
+}
+
+.overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Статус готовности и голосования */
+.ready-status {
+  width: 16px;
+  height: 16px;
+  font-size: 12px;
+  text-align: center;
+  margin-left: 10px;
+}
+
+.not-ready::before {
+  content: '✖';
+  color: #ff3b30;
+}
+
+.ready::before {
+  content: '✔';
+  color: #34c759;
+}
+
+.vote-container {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.vote-count {
+  margin-right: 5px;
+  font-size: 0.9em;
+}
+
+.vote-button {
+  width: 24px;
+  height: 24px;
+  background: #e0e0e0;
+  border: none;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.vote-button.voted {
+  background: #ff3b30;
+}
+
+body.dark-theme .vote-button {
+  background: #7f8c8d;
+}
+
+body.dark-theme .vote-button.voted {
+  background: #ff5349;
+}
+
+/* Выбывший игрок */
+li.out {
+  color: #ff3b30;
+}
+
+body.dark-theme li.out {
+  color: #ff5349;
+}
+
+/* Таймер на кнопке */
+.button.timer {
+  min-width: 100px;
+}
+
+/* Общий таймер игры */
+#gameTimerDisplay {
+  text-align: center;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-top: 10px;
+  transition: color 0.3s;
+}
+
+#gameTimerDisplay.warning {
+  color: #ff3b30;
+}
+
+body.dark-theme #gameTimerDisplay.warning {
+  color: #ff5349;
+}
+
+/* Футер */
+footer {
+  text-align: center;
+  padding: 10px;
+  color: #2c3e50;
+  font-size: 0.9em;
+  margin-top: 20px;
+}
+
+body.dark-theme footer {
+  color: #fff;
+}
+
+/* Кастомный чекбокс */
+.checkbox-container {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkbox-container input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-custom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #8e44ad;
+  border-radius: 4px;
+  margin-right: 8px;
+  position: relative;
+  transition: background 0.3s;
+}
+
+.checkbox-container input[type="checkbox"]:checked + .checkbox-custom {
+  background: #8e44ad;
+}
+
+.checkbox-custom::after {
+  content: '✔';
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.checkbox-container input[type="checkbox"]:checked + .checkbox-custom::after {
+  opacity: 1;
+}
+
+body.dark-theme .checkbox-custom {
+  border-color: #9b59b6;
+}
+
+body.dark-theme .checkbox-container input[type="checkbox"]:checked + .checkbox-custom {
+  background: #9b59b6;
+}
+
+/* Стили центрального блока */
+.main-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 120px);
+  padding: 20px;
+  background: #fff;
+  margin: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  width: calc(100% - 40px); /* Учитываем марджины */
+  max-width: 1200px; /* Максимальная ширина для больших экранов */
+}
+
+body.dark-theme .main-container {
+  background: #2a2a2a;
+}
+
+.header-center {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.header-center h1 {
+  font-size: 2.5em;
+  color: #2c3e50;
+}
+
+body.dark-theme .header-center h1 {
+  color: #fff;
+}
+
+.play-section, .login-section {
+  flex: 1;
+  padding: 20px;
+  text-align: center;
+  margin-top: 60px; /* Отступ для заголовка */
+}
+
+.play-section h2, .login-section h2 {
+  font-size: 1.5em;
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+
+body.dark-theme .play-section h2, body.dark-theme .login-section h2 {
+  color: #fff;
+}
+
+.avatar {
+  margin: 20px 0;
+}
+
+.avatar-icon {
+  font-size: 80px;
+}
+
+.input-group {
+  margin: 10px 0;
+  text-align: left;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.input-group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1em;
+  color: #2c3e50;
+  width: 250px; /* Фиксированная ширина для строки */
+}
+
+body.dark-theme .input-group label {
+  color: #fff;
+}
+
+/* Фиксируем ширину текста метки (например, "Nickname:" и "Language:") */
+.input-group label span.icon {
+  font-size: 1.2em;
+  flex-shrink: 0;
+}
+
+.input-group label span.text {
+  flex: 0 0 80px; /* Фиксированная ширина для текста метки */
+}
+
+.input-group input, .input-group select {
+  flex: 1;
+  padding: 8px;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  font-size: 1em;
+  background: #f0f0f0;
+  color: #2c3e50;
+  width: 100%; /* Устанавливаем ширину */
+  box-sizing: border-box; /* Учитываем padding и border */
+}
+
+body.dark-theme .input-group input, body.dark-theme .input-group select {
+  background: #3a3a3a;
+  color: #fff;
+}
+
+.button-group {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.button-group .button {
+  width: 140px; /* Увеличенная ширина для десктопа */
+  text-align: center;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1px;
+  background: #ccc;
+  position: relative;
+  height: 300px;
+  margin: 0 20px;
+}
+
+.divider span {
+  position: absolute;
+  background: #fff;
+  padding: 10px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  color: #666;
+}
+
+body.dark-theme .divider span {
+  background: #2a2a2a;
+}
+
+.social-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.social-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.social-button img {
+  width: 16px;
+  height: 16px;
+}
+
+.google {
+  background: #db4437;
+}
+
+.google:hover {
+  background: #c1351e;
+}
+
+.vk {
+  background: #4c75a3;
+}
+
+.vk:hover {
+  background: #3b5a82;
+}
+
+.yandex {
+  background: #ffcc00;
+  color: #333;
+}
+
+.yandex:hover {
+  background: #e6b800;
+}
+
+/* Попап для логина */
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 80%;
+  width: 300px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 2000;
+  display: none;
+}
+
+.popup.visible {
+  opacity: 1;
+  display: block;
+}
+
+body.dark-theme .popup {
+  background: rgba(52, 73, 94, 0.95);
+}
+
+.popup-content {
+  position: relative;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: #2c3e50;
+}
+
+body.dark-theme .close {
+  color: #fff;
+}
+
+/* Контейнер для кнопки Log In */
+.login-button-container {
+  margin-top: 20px;
+  display: none;
+  text-align: center;
+}
+
+/* Мобильная адаптация */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .main-container {
+    flex-direction: column;
+    min-height: auto;
+    padding: 15px;
+    margin: 5px; /* Уменьшенные марджины */
+    width: calc(100% - 10px); /* Полная ширина с маленькими марджинами */
+  }
+
+  .header-center h1 {
+    font-size: 2em;
+  }
+
+  .play-section, .login-section {
+    margin-top: 40px;
+    padding: 10px;
+  }
+
+  .play-section h2, .login-section h2 {
+    font-size: 1.2em;
+  }
+
+  .input-group label {
+    width: 100%;
+    max-width: 250px; /* Увеличим ширину для мобильной версии */
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .button-group .button {
+    width: 120px; /* Меньшая ширина для мобильной версии */
+  }
+
+  .divider, .login-section {
+    display: none;
+  }
+
+  .login-button-container {
+    display: block;
+  }
+
+  .login-button-container .button {
+    width: 120px;
+  }
+
+  #themeToggle {
+    top: 5px;
+    right: 5px;
+    width: 40px;
+    height: 20px;
+  }
+
+  #themeToggle::before {
+    width: 16px;
+    height: 16px;
+    top: 2px;
+    left: 2px;
+    font-size: 12px;
+  }
+
+  body.dark-theme #themeToggle::before {
+    transform: translateX(20px);
+  }
+}
