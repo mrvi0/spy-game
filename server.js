@@ -2,11 +2,111 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const VKontakteStrategy = require('passport-vkontakte').Strategy;
+const YandexStrategy = require('passport-yandex').Strategy;
+const session = require('express-session');
+const sharedsession = require('express-socket.io-session'); // Добавляем модуль
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Настройка сессий
+const sessionMiddleware = session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+});
+
+app.use(sessionMiddleware);
+
+// Делаем сессию доступной для Socket.IO
+io.use(sharedsession(sessionMiddleware, {
+  autoSave: true
+}));
+
+// Инициализация Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Сериализация и десериализация пользователя
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((obj, done) => {
+  done(null, obj);
+});
+
+// Настройка Google Strategy
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: 'http://localhost:3001/auth/google/callback',
+}, (accessToken, refreshToken, profile, done) => {
+  return done(null, profile);
+}));
+
+// Настройка VK Strategy
+passport.use(new VKontakteStrategy({
+  clientID: process.env.VK_CLIENT_ID,
+  clientSecret: process.env.VK_CLIENT_SECRET,
+  callbackURL: 'http://localhost:3001/auth/vk/callback',
+}, (accessToken, refreshToken, params, profile, done) => {
+  return done(null, profile);
+}));
+
+// Настройка Yandex Strategy
+passport.use(new YandexStrategy({
+  clientID: process.env.YANDEX_CLIENT_ID,
+  clientSecret: process.env.YANDEX_CLIENT_SECRET,
+  callbackURL: "http://localhost:3001/auth/yandex/callback"
+}, (accessToken, refreshToken, profile, done) => {
+  console.log('Yandex profile:', profile); // Отладочный вывод
+  return done(null, profile);
+}));
+
+// Маршруты для авторизации
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
+  res.redirect('/');
+});
+
+app.get('/auth/vk', passport.authenticate('vkontakte'));
+app.get('/auth/vk/callback', passport.authenticate('vkontakte', { failureRedirect: '/' }), (req, res) => {
+  res.redirect('/');
+});
+
+app.get('/auth/yandex', passport.authenticate('yandex'));
+app.get('/auth/yandex/callback', passport.authenticate('yandex', { failureRedirect: '/' }), (req, res) => {
+  res.redirect('/');
+});
+
+// Маршрут для получения данных пользователя
+app.get('/user', (req, res) => {
+  if (req.user) {
+    res.json(req.user);
+  } else {
+    res.json(null);
+  }
+});
+
+// Маршрут для выхода
+app.get('/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      console.error(err);
+    }
+    res.redirect('/');
+  });
+});
+
+// Статические файлы
 app.use(express.static('public'));
 
 const rooms = {};
@@ -49,29 +149,45 @@ io.on('connection', (socket) => {
   console.log('Игрок подключился:', socket.id);
 
   socket.on('createRoom', ({ maxPlayers, spiesCount, nickname }, callback) => {
-    const roomId = `room-${Math.random().toString(36).substr(2, 6)}`;
-    const creatorPlayerId = `player-${Math.random().toString(36).substr(2, 6)}`;
+    const roomId = `room-${Math.random().toString(36).substr(2, 9)}`;
+    const creatorPlayerId = socket.id;
+    const user = socket.handshake.session.passport ? socket.handshake.session.passport.user : null;
+    let avatarUrl = null;
+    if (user) {
+      if (user.provider === 'google') {
+        if (user.photos && user.photos.length > 0) {
+          avatarUrl = user.photos[0].value;
+        }
+      } else if (user.provider === 'yandex') {
+        if (user._json.default_avatar_id) {
+          avatarUrl = `https://avatars.yandex.net/get-yapic/${user._json.default_avatar_id}/islands-200`;
+        }
+      }
+    }
+    console.log(`[DEBUG] Created room ${roomId}, creator avatarUrl: ${avatarUrl}`);
     rooms[roomId] = {
-      players: [{ id: socket.id, playerId: creatorPlayerId, name: nickname || `Guest${Math.floor(Math.random() * 10000)}`, isReady: true, isCreator: true, isOut: false, votes: 0, isSpy: false }],
-      maxPlayers: maxPlayers || 10,
-      spiesCount: spiesCount || 2,
+      players: [{ id: socket.id, playerId: creatorPlayerId, name: nickname, isReady: false, isCreator: true, isOut: false, votes: 0, isSpy: false, avatarUrl }],
       roomName: 'Безымянная',
+      maxPlayers,
+      spiesCount,
       locationTheme: 'default',
       gameTimer: 600,
+      spiesKnown: false,
       creator: creatorPlayerId,
       started: false,
-      spies: [],
-      location: '',
-      votes: {},
-      votedPlayers: [],
-      votingInProgress: false,
-      spiesKnown: false,
-      lastCreatorCheck: Date.now()
+      location: null
     };
     socket.join(roomId);
-    console.log('Создана комната:', roomId, 'Создатель:', creatorPlayerId);
-    io.to(roomId).emit('playerList', rooms[roomId].players, rooms[roomId].spiesKnown);
+    socket.playerId = creatorPlayerId; // Сохраняем playerId в сокете
     callback({ roomId, creatorPlayerId });
+    io.to(roomId).emit('settingsUpdated', {
+      roomName: rooms[roomId].roomName,
+      maxPlayers: rooms[roomId].maxPlayers,
+      spiesCount: rooms[roomId].spiesCount,
+      locationTheme: rooms[roomId].locationTheme,
+      gameTimer: rooms[roomId].gameTimer,
+      spiesKnown: rooms[roomId].spiesKnown
+    });
   });
 
   socket.on('joinRoom', ({ roomId, playerId }) => {
@@ -79,7 +195,29 @@ io.on('connection', (socket) => {
       const existingPlayer = rooms[roomId].players.find(p => p.playerId === playerId);
       if (existingPlayer) {
         existingPlayer.id = socket.id;
+        const user = socket.handshake.session.passport ? socket.handshake.session.passport.user : null;
+        let avatarUrl = null;
+        let name = existingPlayer.name; // Сохраняем текущее имя, если пользователь не авторизован
+        if (user) {
+          if (user.provider === 'google') {
+            name = user.displayName;
+            if (user.photos && user.photos.length > 0) {
+              avatarUrl = user.photos[0].value;
+            }
+          } else if (user.provider === 'yandex') {
+            const firstName = user._json.first_name || 'Неизвестно';
+            const lastName = user._json.last_name || '';
+            name = `${firstName} ${lastName}`.trim();
+            if (user._json.default_avatar_id) {
+              avatarUrl = `https://avatars.yandex.net/get-yapic/${user._json.default_avatar_id}/islands-200`;
+            }
+          }
+        }
+        existingPlayer.name = name;
+        existingPlayer.avatarUrl = avatarUrl;
+        console.log(`[DEBUG] Existing player updated in room ${roomId}, name: ${name}, avatarUrl: ${avatarUrl}`);
         socket.join(roomId);
+        socket.playerId = playerId; // Сохраняем playerId в сокете
         io.to(roomId).emit('playerList', rooms[roomId].players, rooms[roomId].spiesKnown);
         socket.emit('isCreator', rooms[roomId].creator === playerId);
         socket.emit('settingsUpdated', {
@@ -105,8 +243,28 @@ io.on('connection', (socket) => {
           return;
         }
         socket.join(roomId);
-        const player = { id: socket.id, playerId: playerId, name: `Guest${Math.floor(Math.random() * 10000)}`, isReady: false, isCreator: false, isOut: false, votes: 0, isSpy: false };
+        const user = socket.handshake.session.passport ? socket.handshake.session.passport.user : null;
+        let name = `Guest${Math.floor(Math.random() * 10000)}`;
+        let avatarUrl = null;
+        if (user) {
+          if (user.provider === 'google') {
+            name = user.displayName;
+            if (user.photos && user.photos.length > 0) {
+              avatarUrl = user.photos[0].value;
+            }
+          } else if (user.provider === 'yandex') {
+            const firstName = user._json.first_name || 'Неизвестно';
+            const lastName = user._json.last_name || '';
+            name = `${firstName} ${lastName}`.trim();
+            if (user._json.default_avatar_id) {
+              avatarUrl = `https://avatars.yandex.net/get-yapic/${user._json.default_avatar_id}/islands-200`;
+            }
+          }
+        }
+        const player = { id: socket.id, playerId: playerId, name, isReady: false, isCreator: false, isOut: false, votes: 0, isSpy: false, avatarUrl };
+        console.log(`[DEBUG] New player joined room ${roomId}, name: ${name}, avatarUrl: ${avatarUrl}`);
         rooms[roomId].players.push(player);
+        socket.playerId = playerId; // Сохраняем playerId в сокете
         io.to(roomId).emit('playerList', rooms[roomId].players, rooms[roomId].spiesKnown);
         socket.emit('isCreator', rooms[roomId].creator === playerId);
         socket.emit('settingsUpdated', {
