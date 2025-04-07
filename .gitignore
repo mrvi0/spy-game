@@ -29,4 +29,4 @@ Thumbs.db
 # Игнорируем личные файлы
 *.bak
 *.tmp
-eslint.config.mjs
+.eslintrc.cjs
