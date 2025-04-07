@@ -25,22 +25,18 @@ const gameControls = document.getElementById('gameControls');
 function updateControls() {
   gameControls.innerHTML = '';
   if (isCreator) {
-    gameControls.innerHTML = `
-      <button id="startGame" class="button">Начать игру</button>
-      <button id="resetGame" class="button" style="display: none;">Сбросить игру</button>
-      <button id="closeRoom" class="button button-danger">Закрыть комнату</button>
-    `;
-    if (gameStarted && !voting) {
-      document.getElementById('startGame').style.display = 'none';
-      document.getElementById('resetGame').style.display = 'block';
-      gameControls.insertAdjacentHTML('afterbegin', `<button id="startVote" class="button">Начать голосование</button>`);
-      document.getElementById('startVote')?.addEventListener('click', () => {
-        voting = true;
-        socket.emit('startVoting', roomId);
-        addVoteControls(players);
-        console.log('[DEBUG] Start voting clicked for room:', roomId);
-      });
+    let buttonsHtml = '';
+    if (!gameStarted || voting) {
+      buttonsHtml += `<button id="startGame" class="button">Начать игру</button>`;
+    } else {
+      buttonsHtml += `<button id="resetGame" class="button">Сбросить игру</button>`;
+      if (!voting) {
+        buttonsHtml = `<button id="startVote" class="button">Начать голосование</button>` + buttonsHtml;
+      }
     }
+    buttonsHtml += `<button id="closeRoom" class="button button-danger">Закрыть комнату</button>`;
+    gameControls.innerHTML = buttonsHtml;
+
     document.getElementById('startGame')?.addEventListener('click', () => {
       socket.emit('startGame', roomId);
       console.log('[DEBUG] Start game clicked for room:', roomId);
@@ -48,6 +44,12 @@ function updateControls() {
     document.getElementById('resetGame')?.addEventListener('click', () => {
       socket.emit('resetGame', roomId);
       console.log('[DEBUG] Reset game clicked for room:', roomId);
+    });
+    document.getElementById('startVote')?.addEventListener('click', () => {
+      voting = true;
+      socket.emit('startVoting', roomId);
+      addVoteControls(players);
+      console.log('[DEBUG] Start voting clicked for room:', roomId);
     });
     document.getElementById('closeRoom')?.addEventListener('click', () => {
       const closeRoomPopup = document.getElementById('closeRoomPopup');
@@ -58,19 +60,22 @@ function updateControls() {
       console.log('[DEBUG] Close room popup opened');
     });
   } else {
-    gameControls.innerHTML = `
-      <button id="readyToggle" class="button button-secondary" style="${gameStarted ? 'display: none;' : ''}">${isReady ? 'Готов' : 'Не готов'}</button>
-      <button id="leaveRoom" class="button button-danger">Покинуть комнату</button>
-    `;
-    if (gameStarted && !voting) {
-      gameControls.insertAdjacentHTML('afterbegin', `<button id="startVote" class="button">Начать голосование</button>`);
-      document.getElementById('startVote')?.addEventListener('click', () => {
-        voting = true;
-        socket.emit('startVoting', roomId);
-        addVoteControls(players);
-        console.log('[DEBUG] Start voting clicked for room:', roomId);
-      });
+    let buttonsHtml = '';
+    if (!gameStarted) {
+      buttonsHtml += `<button id="readyToggle" class="button button-secondary">${isReady ? 'Готов' : 'Не готов'}</button>`;
     }
+    if (gameStarted && !voting) {
+      buttonsHtml += `<button id="startVote" class="button">Начать голосование</button>`;
+    }
+    buttonsHtml += `<button id="leaveRoom" class="button button-danger">Покинуть комнату</button>`;
+    gameControls.innerHTML = buttonsHtml;
+
+    document.getElementById('startVote')?.addEventListener('click', () => {
+      voting = true;
+      socket.emit('startVoting', roomId);
+      addVoteControls(players);
+      console.log('[DEBUG] Start voting clicked for room:', roomId);
+    });
     document.getElementById('readyToggle')?.addEventListener('click', () => {
       isReady = !isReady;
       socket.emit('setReady', { roomId, playerId, isReady });
@@ -222,8 +227,14 @@ document.querySelector('.overlay')?.addEventListener('click', () => {
 });
 
 socket.on('roomFull', (reason) => {
-  alert(reason || 'Комната заполнена!'); // Этот alert пока оставим, можно заменить позже
-  console.log('[DEBUG] Room full:', reason);
+  const roomFullPopup = document.getElementById('roomFullPopup');
+  const roomFullPopupOverlay = document.getElementById('roomFullPopupOverlay');
+  const roomFullMessage = document.getElementById('roomFullMessage');
+  
+  roomFullMessage.textContent = reason || 'Комната заполнена!';
+  roomFullPopup.classList.add('visible');
+  roomFullPopupOverlay.classList.add('visible');
+  console.log('[DEBUG] Room full popup opened:', reason);
 });
 
 socket.on('isCreator', (creator) => {
@@ -636,4 +647,15 @@ buttons.forEach(button => {
 
   adjustFontSize();
   window.addEventListener('resize', adjustFontSize);
+});
+
+document.getElementById('closeRoomFullPopup')?.addEventListener('click', () => {
+  const roomFullPopup = document.getElementById('roomFullPopup');
+  const roomFullPopupOverlay = document.getElementById('roomFullPopupOverlay');
+  
+  roomFullPopup.classList.remove('visible');
+  roomFullPopupOverlay.classList.remove('visible');
+  console.log('[DEBUG] Room full popup closed');
+  
+  window.location.href = '/';
 });

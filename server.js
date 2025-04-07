@@ -117,14 +117,12 @@ const locations = {
   'sci-fi': ['Космический корабль', 'База на Марсе', 'Лаборатория', 'Колония', 'Орбитальная станция']
 };
 
-app.get('/room/:roomId', (req, res) => {
-  const roomId = req.params.roomId;
-  console.log('Попытка зайти в комнату:', roomId);
-  if (rooms[roomId]) {
-    res.sendFile(path.join(__dirname, 'public', 'room.html'));
-  } else {
-    res.status(404).send('Комната не найдена');
+app.get('/room/:id', (req, res) => {
+  const roomId = req.params.id;
+  if (!rooms[roomId]) {
+    return res.sendFile(path.join(__dirname, 'public', 'roomNotFound.html'));
   }
+  res.sendFile(path.join(__dirname, 'public', 'room.html'));
 });
 
 // Периодическая проверка активности создателя комнаты
