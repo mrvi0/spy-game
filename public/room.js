@@ -75,9 +75,16 @@ function updateControls() {
       console.log('[DEBUG] Ready toggle clicked:', { roomId, playerId, isReady });
       updateReadyButton();
     });
+
+    // Обработчик для кнопки "Покинуть комнату"
     document.getElementById('leaveRoom')?.addEventListener('click', () => {
-      socket.emit('leaveRoom', { roomId, playerId });
-      console.log('[DEBUG] Leave room clicked:', { roomId, playerId });
+      const leaveRoomPopup = document.getElementById('leaveRoomPopup');
+      const leaveRoomPopupOverlay = document.getElementById('leaveRoomPopupOverlay');
+      
+      // Показываем попап
+      leaveRoomPopup.classList.add('visible');
+      leaveRoomPopupOverlay.classList.add('visible');
+      console.log('[DEBUG] Leave room popup opened');
     });
   }
   updateReadyButton();
@@ -545,4 +552,40 @@ buttons.forEach(button => {
 
   adjustFontSize();
   window.addEventListener('resize', adjustFontSize);
+});
+
+// Обработчики для кнопок в попапе подтверждения
+document.getElementById('confirmLeave')?.addEventListener('click', () => {
+  const leaveRoomPopup = document.getElementById('leaveRoomPopup');
+  const leaveRoomPopupOverlay = document.getElementById('leaveRoomPopupOverlay');
+  
+  // Скрываем попап
+  leaveRoomPopup.classList.remove('visible');
+  leaveRoomPopupOverlay.classList.remove('visible');
+  
+  // Отправляем событие leaveRoom и перенаправляем на главную страницу
+  socket.emit('leaveRoom', { roomId, playerId });
+  console.log('[DEBUG] Confirmed leaving room:', { roomId, playerId });
+  window.location.href = '/'; // Перенаправление в корень сайта
+});
+
+document.getElementById('cancelLeave')?.addEventListener('click', () => {
+  const leaveRoomPopup = document.getElementById('leaveRoomPopup');
+  const leaveRoomPopupOverlay = document.getElementById('leaveRoomPopupOverlay');
+  
+  // Скрываем попап
+  leaveRoomPopup.classList.remove('visible');
+  leaveRoomPopupOverlay.classList.remove('visible');
+  console.log('[DEBUG] Canceled leaving room');
+});
+
+// Закрытие попапа при клике на overlay
+document.getElementById('leaveRoomPopupOverlay')?.addEventListener('click', () => {
+  const leaveRoomPopup = document.getElementById('leaveRoomPopup');
+  const leaveRoomPopupOverlay = document.getElementById('leaveRoomPopupOverlay');
+  
+  // Скрываем попап
+  leaveRoomPopup.classList.remove('visible');
+  leaveRoomPopupOverlay.classList.remove('visible');
+  console.log('[DEBUG] Leave room popup closed by clicking overlay');
 });

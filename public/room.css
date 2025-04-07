@@ -583,3 +583,55 @@ body.dark-theme .vote-counter {
 #gameResult li {
   margin: 5px 0;
 }
+
+.popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--background-secondary);
+  border-radius: 10px;
+  padding: 20px;
+  z-index: 1001; /* Убедимся, что попап поверх всего */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.popup.visible {
+  display: block;
+}
+
+.popup-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.popup-overlay.visible {
+  display: block;
+}
+
+.popup-content h3 {
+  margin: 0 0 20px;
+  font-size: 1.2em;
+  text-align: center;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: space-around;
+}
+
+.button-secondary {
+  background: #666;
+  color: #fff;
+}
+
+.button-secondary:hover {
+  background: #555;
+}
