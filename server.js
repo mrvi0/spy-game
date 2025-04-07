@@ -7,7 +7,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const VKontakteStrategy = require('passport-vkontakte').Strategy;
 const YandexStrategy = require('passport-yandex').Strategy;
 const session = require('express-session');
-const sharedsession = require('express-socket.io-session'); // Добавляем модуль
+const sharedsession = require('express-socket.io-session');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -117,16 +117,15 @@ const locations = {
   'sci-fi': ['Космический корабль', 'База на Марсе', 'Лаборатория', 'Колония', 'Орбитальная станция']
 };
 
-app.get('/room/:roomId', (req, res) => {
-  const roomId = req.params.roomId;
-  console.log('Попытка зайти в комнату:', roomId);
-  if (rooms[roomId]) {
-    res.sendFile(path.join(__dirname, 'public', 'room.html'));
-  } else {
-    res.status(404).send('Комната не найдена');
+app.get('/room/:id', (req, res) => {
+  const roomId = req.params.id;
+  if (!rooms[roomId]) {
+    return res.sendFile(path.join(__dirname, 'public', 'roomNotFound.html'));
   }
+  res.sendFile(path.join(__dirname, 'public', 'room.html'));
 });
 
+// Периодическая проверка активности создателя комнаты
 setInterval(() => {
   for (const roomId in rooms) {
     const room = rooms[roomId];
@@ -145,15 +144,17 @@ setInterval(() => {
   }
 }, 60 * 1000);
 
+// Обработка событий Socket.IO
 io.on('connection', (socket) => {
   console.log('Игрок подключился:', socket.id);
 
-  socket.on('createRoom', ({ maxPlayers, spiesCount, nickname }, callback) => {
+  // В обработчике createRoom
+  socket.on('createRoom', ({ maxPlayers, spiesCount, nickname, avatar }, callback) => {
     const roomId = `room-${Math.random().toString(36).substr(2, 9)}`;
     const creatorPlayerId = socket.id;
     const user = socket.handshake.session.passport ? socket.handshake.session.passport.user : null;
-    let avatarUrl = null;
-    if (user) {
+    let avatarUrl = avatar || 'https://dummyimage.com/100x100?text=Default';
+    if (user && !avatar) {
       if (user.provider === 'google') {
         if (user.photos && user.photos.length > 0) {
           avatarUrl = user.photos[0].value;
@@ -178,7 +179,7 @@ io.on('connection', (socket) => {
       location: null
     };
     socket.join(roomId);
-    socket.playerId = creatorPlayerId; // Сохраняем playerId в сокете
+    socket.playerId = creatorPlayerId;
     callback({ roomId, creatorPlayerId });
     io.to(roomId).emit('settingsUpdated', {
       roomName: rooms[roomId].roomName,
@@ -190,15 +191,16 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('joinRoom', ({ roomId, playerId }) => {
+  // В обработчике joinRoom
+  socket.on('joinRoom', ({ roomId, playerId, avatar }) => {
     if (rooms[roomId]) {
       const existingPlayer = rooms[roomId].players.find(p => p.playerId === playerId);
       if (existingPlayer) {
         existingPlayer.id = socket.id;
         const user = socket.handshake.session.passport ? socket.handshake.session.passport.user : null;
-        let avatarUrl = null;
-        let name = existingPlayer.name; // Сохраняем текущее имя, если пользователь не авторизован
-        if (user) {
+        let avatarUrl = avatar || 'https://dummyimage.com/100x100?text=Default';
+        let name = existingPlayer.name;
+        if (user && !avatar) {
           if (user.provider === 'google') {
             name = user.displayName;
             if (user.photos && user.photos.length > 0) {
@@ -217,7 +219,7 @@ io.on('connection', (socket) => {
         existingPlayer.avatarUrl = avatarUrl;
         console.log(`[DEBUG] Existing player updated in room ${roomId}, name: ${name}, avatarUrl: ${avatarUrl}`);
         socket.join(roomId);
-        socket.playerId = playerId; // Сохраняем playerId в сокете
+        socket.playerId = playerId;
         io.to(roomId).emit('playerList', rooms[roomId].players, rooms[roomId].spiesKnown);
         socket.emit('isCreator', rooms[roomId].creator === playerId);
         socket.emit('settingsUpdated', {
@@ -245,8 +247,8 @@ io.on('connection', (socket) => {
         socket.join(roomId);
         const user = socket.handshake.session.passport ? socket.handshake.session.passport.user : null;
         let name = `Guest${Math.floor(Math.random() * 10000)}`;
-        let avatarUrl = null;
-        if (user) {
+        let avatarUrl = avatar || 'https://dummyimage.com/100x100?text=Default';
+        if (user && !avatar) {
           if (user.provider === 'google') {
             name = user.displayName;
             if (user.photos && user.photos.length > 0) {
@@ -264,7 +266,7 @@ io.on('connection', (socket) => {
         const player = { id: socket.id, playerId: playerId, name, isReady: false, isCreator: false, isOut: false, votes: 0, isSpy: false, avatarUrl };
         console.log(`[DEBUG] New player joined room ${roomId}, name: ${name}, avatarUrl: ${avatarUrl}`);
         rooms[roomId].players.push(player);
-        socket.playerId = playerId; // Сохраняем playerId в сокете
+        socket.playerId = playerId;
         io.to(roomId).emit('playerList', rooms[roomId].players, rooms[roomId].spiesKnown);
         socket.emit('isCreator', rooms[roomId].creator === playerId);
         socket.emit('settingsUpdated', {
@@ -344,7 +346,12 @@ io.on('connection', (socket) => {
 
       setTimeout(() => {
         if (rooms[roomId] && rooms[roomId].started) {
-          io.to(roomId).emit('gameEnded', { spies: spyNames, location });
+          io.to(roomId).emit('gameEnded', { 
+            spiesWin: true, 
+            spies: spyNames, 
+            location: rooms[roomId].location,
+            players: rooms[roomId].players
+          });
           rooms[roomId].started = false;
         }
       }, rooms[roomId].gameTimer * 1000);
@@ -387,15 +394,18 @@ io.on('connection', (socket) => {
       rooms[roomId].votedPlayers.push(voterId);
       const targetPlayer = rooms[roomId].players.find(p => p.playerId === targetId);
       if (targetPlayer) targetPlayer.votes = rooms[roomId].votes[targetId];
-      io.to(roomId).emit('voteUpdated', { targetId, votes: targetPlayer.votes });
+      io.to(roomId).emit('voteUpdated', { targetId, votes: targetPlayer.votes, voterId });
       const activePlayers = rooms[roomId].players.filter(p => !p.isOut).length;
       const majority = Math.floor(activePlayers / 2) + 1;
       if (targetPlayer.votes >= majority) {
         endVoting(roomId);
       }
+      if (rooms[roomId].votedPlayers.length === activePlayers) {
+        endVoting(roomId);
+      }
     }
   });
-
+  
   function endVoting(roomId) {
     if (rooms[roomId] && rooms[roomId].started) {
       const votes = rooms[roomId].votes;
@@ -417,12 +427,21 @@ io.on('connection', (socket) => {
           io.to(roomId).emit('playerList', rooms[roomId].players, rooms[roomId].spiesKnown);
           const spiesLeft = rooms[roomId].spies.filter(spyId => !rooms[roomId].players.find(p => p.playerId === spyId)?.isOut).length;
           const nonSpiesLeft = activePlayers.filter(p => !p.isSpy && !p.isOut).length;
-
+  
           if (spiesLeft === 0) {
-            io.to(roomId).emit('spiesLost', { location: rooms[roomId].location, spies: rooms[roomId].spies.map(id => rooms[roomId].players.find(p => p.playerId === id).name) });
+            io.to(roomId).emit('spiesLost', { 
+              location: rooms[roomId].location, 
+              spies: rooms[roomId].spies.map(id => rooms[roomId].players.find(p => p.playerId === id).name),
+              players: rooms[roomId].players
+            });
             rooms[roomId].started = false;
           } else if (nonSpiesLeft === 0 || spiesLeft >= nonSpiesLeft) {
-            io.to(roomId).emit('gameEnded', { spies: rooms[roomId].spies.map(id => rooms[roomId].players.find(p => p.playerId === id).name), location: rooms[roomId].location });
+            io.to(roomId).emit('gameEnded', { 
+              spiesWin: true, 
+              spies: rooms[roomId].spies.map(id => rooms[roomId].players.find(p => p.playerId === id).name), 
+              location: rooms[roomId].location,
+              players: rooms[roomId].players
+            });
             rooms[roomId].started = false;
           }
         }

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Комната не найдена</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/room.css">
+</head>
+<body>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Центрируем по вертикали */
+            align-items: center; /* Центрируем по горизонтали */
+            min-height: 90vh; /* Контейнер занимает всю высоту экрана */
+            text-align: center;
+            padding: 20px;
+            color: var(--text-color, #fff);
+            
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+          }
+          
+          .container h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+          }
+          
+          .container p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+          }
+          
+          .container-div{
+            border-radius: 30px;
+            background: rgba(0, 0, 0, 0.5); /* Затемнение фона для читаемости текста */
+            padding: 30px;
+          }
+    </style>
+  <div class="parallax">
+    <div class="parallax-layer layer-1"></div>
+    <div class="parallax-layer layer-2"></div>
+    <div class="parallax-layer layer-3"></div>
+    <div class="parallax-layer layer-4"></div>
+    <div class="parallax-layer layer-5"></div>
+  </div>
+
+  <div class="container">
+    <div class="container-div">
+        <h1>Комната не найдена</h1>
+    <p>К сожалению, такой комнаты не существует. Возможно, она была закрыта или вы ввели неправильный код.</p>
+    <a href="/" class="button button-ready" style="color: white;">На главную</a>
+    </div>
+    
+  </div>
+  <!-- Футер -->
+  <footer>Создано с ❤️ <a href="https://t.me/B4DCAT" target="_blank">Mr Vi</a></footer>
+  <script src="/js/parallax.js"></script>
+</body>
+</html>

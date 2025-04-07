@@ -6,6 +6,10 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="dark-theme">
+  <!-- Элемент, который может использоваться в index.js -->
+  <div id="someElement" style="display: none;">...</div>
+
+  <!-- Параллакс-фон -->
   <div class="parallax">
     <div class="parallax-layer layer-1"></div>
     <div class="parallax-layer layer-2"></div>
@@ -13,46 +17,68 @@
     <div class="parallax-layer layer-4"></div>
     <div class="parallax-layer layer-5"></div>
   </div>
+
+  <!-- Основной контейнер -->
   <main class="main-container">
     <div class="header-center">
       <h1>Spy Game</h1>
     </div>
     <div id="themeToggle"></div>
+
+    <!-- Секция для игры -->
     <div class="play-section">
-      <h2>Quick Play</h2>
-      <div class="avatar">
-        <span class="avatar-icon">👤</span>
+      <div class="avatar-wrapper">
+        <img src="https://dummyimage.com/100x100?text=1" alt="Avatar" class="avatar-image" />
+        <span class="edit-icon">✏️</span>
       </div>
       <div class="input-group">
-        <label><span class="icon">👤</span><span class="text">Nickname:</span><input id="nickname" type="text" value="User1234"></label>
+        <label>
+          <span class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16">
+              <g fill="currentColor">
+                <path d="M11 6a3 3 0 1 1-6 0a3 3 0 0 1 6 0"/>
+                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+              </g>
+            </svg>
+          </span>
+          <span class="text">Nickname:</span>
+          <input id="nickname" type="text" value="User1234">
+        </label>
       </div>
       <div class="input-group">
-        <label><span class="icon">🌐</span><span class="text">Language:</span> 
+        <!-- Закомментирован выбор языка -->
+        <!-- <label><span class="icon">🌐</span><span class="text">Language:</span> 
           <select id="language">
             <option value="en">English</option>
             <option value="ru">Русский</option>
           </select>
-        </label>
+        </label> -->
       </div>
       <div class="button-group">
-        <button id="connectButton" class="button button-secondary">Connect</button>
-        <button id="createRoom" class="button button-primary">Create Room</button>
+        <button id="connectButton" class="button button-secondary">CONNECT</button>
+        <button id="createRoom" class="button button-primary">CREATE ROOM</button>
       </div>
       <div class="login-button-container">
         <button id="loginButton" class="button button-secondary">Log In</button>
       </div>
     </div>
+
+    <!-- Разделитель -->
     <div class="divider">
       <span>OR</span>
     </div>
+
+    <!-- Секция логина -->
     <div class="login-section">
       <h2>Log In Here</h2>
       <div class="social-buttons">
         <button class="social-button google"><img src="https://img.icons8.com/?size=100&id=17950&format=png&color=ffffff" alt="Google"> Google</button>
-        <button class="social-button vk"><img src="https://img.icons8.com/?size=100&id=38692&format=png&color=ffffff" alt="VK"> VK</button>
+        <!-- <button class="social-button vk"><img src="https://img.icons8.com/?size=100&id=38692&format=png&color=ffffff" alt="VK"> VK</button> -->
         <button class="social-button yandex"><img src="https://img.icons8.com/?size=100&id=77633&format=png&color=ffffff" alt="Yandex"> Yandex</button>
       </div>
     </div>
+
+    <!-- Попап для логина -->
     <div id="loginPopup" class="popup">
       <div class="popup-content">
         <span id="closePopup" class="close">×</span>
@@ -66,10 +92,26 @@
     </div>
     <div id="popupOverlay" class="overlay"></div>
   </main>
+
+  <!-- Футер -->
   <footer>Создано с ❤️ <a href="https://t.me/B4DCAT" target="_blank">Mr Vi</a></footer>
+
+  <!-- Модальное окно для выбора аватара -->
+  <div class="avatar-modal" id="avatarModal">
+    <div class="avatar-modal-content">
+      <h2>Выберите аватар</h2>
+      <div class="avatar-list" id="avatarList">
+        <!-- Аватары будут добавлены через JS -->
+      </div>
+      <button class="button" id="closeAvatarModal">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Подключение скриптов -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="/index.js"></script>
   <script>
+    // Переключение темы
     const themeToggle = document.getElementById('themeToggle');
     themeToggle.addEventListener('click', () => {
       document.body.classList.toggle('dark-theme');
@@ -81,6 +123,7 @@
       document.body.classList.remove('dark-theme');
     }
 
+    // Управление попапом логина
     const loginButton = document.getElementById('loginButton');
     const loginPopup = document.getElementById('loginPopup');
     const closePopup = document.getElementById('closePopup');

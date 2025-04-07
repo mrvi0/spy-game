@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/room.css">
 </head>
 <body>
+  <!-- Параллакс-фон -->
   <div class="parallax">
     <div class="parallax-layer layer-1"></div>
     <div class="parallax-layer layer-2"></div>
@@ -14,13 +15,17 @@
     <div class="parallax-layer layer-4"></div>
     <div class="parallax-layer layer-5"></div>
   </div>
-  <main>
+
+  <!-- Основной контейнер -->
+  <main class="room-container">
     <h1 id="roomTitle">Комната <span id="roomId"></span></h1>
     <div id="roomInfo"></div>
     <div id="gameTimerDisplay"></div>
-    <button id="sidebarToggle" class="button button-secondary" style="display: none;">☰</button>
+    <button id="sidebarToggle" class="settings-toggle" style="display: none;">☰</button>
+
+    <!-- Сайдбар с настройками -->
     <div id="sidebar">
-      <button id="sidebarClose" class="button button-secondary">✖</button>
+      <button id="sidebarClose" class="settings-toggle">✖</button>
       <h2>Настройки</h2>
       <label>Название комнаты: <input id="roomName" type="text" value="Безымянная"></label>
       <label class="tooltip">Макс. игроков: <input id="maxPlayers" type="number" min="2" max="15" value="10"></label>
@@ -51,19 +56,126 @@
         </label>
       </div>
       <div class="button-group">
-        <button id="copyUrlButton2" class="button button-secondary">Скопировать URL</button>
+        <button id="copyUrlButton2" class="button button-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+            <g fill="currentColor">
+              <path d="M6.5 0A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0zm3 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5z"/>
+              <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1A2.5 2.5 0 0 1 9.5 5h-3A2.5 2.5 0 0 1 4 2.5zm4.5 6V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5a.5.5 0 0 1 1 0"/>
+            </g>
+          </svg> Скопировать
+        </button>
       </div>
       <div id="copyUrlMessage2" style="color: #34c759; margin-top: 10px; display: none;">Ссылка скопирована</div>
     </div>
-    <h2>Игроки:</h2>
-    <ul id="players"></ul>
+
+    <!-- Контейнер для трёх блоков -->
+    <div class="room-content">
+      <!-- Список игроков -->
+      <div class="players-list">
+        <h2>Игроки:</h2>
+        <div id="players"></div>
+      </div>
+
+      <!-- Контейнер для роли и чата -->
+      <div class="game-content">
+        <!-- Блок с ролью/локацией -->
+        <div id="gameCards">
+          <div class="card waiting">
+            <div class="loader"></div>
+            <span>Ожидание начала</span>
+          </div>
+        </div>
+
+        <!-- Чат -->
+        <div class="chat-section">
+          <h2>Чат</h2>
+          <div id="chatMessages" class="chat-messages"></div>
+          <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Введите сообщение...">
+            <button id="sendMessage" class="button button-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Элементы управления игрой -->
     <div id="gameControls"></div>
-    <div id="gameCards"></div>
+
+    <!-- Попап для игрока -->
+    <div id="playerPopup" class="player-popup">
+      <div class="player-popup-content">
+        <span id="closePopup" class="close">×</span>
+        <div class="player-info">
+          <img id="popupAvatar" class="popup-avatar" src="" alt="Avatar">
+          <h3 id="popupName"></h3>
+          <p id="popupStatus"></p>
+        </div>
+      </div>
+    </div>
+
+    <div id="leaveRoomPopup" class="popup">
+      <div class="popup-content">
+        <h3>Вы действительно хотите покинуть комнату?</h3>
+        <div class="popup-buttons">
+          <button id="confirmLeave" class="button button-danger">Да</button>
+          <button id="cancelLeave" class="button button-disabled">Нет</button>
+        </div>
+      </div>
+    </div>
+    <div id="leaveRoomPopupOverlay" class="popup-overlay"></div>
+
+    <!-- Попап для подтверждения закрытия комнаты (для создателя) -->
+    <div id="closeRoomPopup" class="popup">
+      <div class="popup-content">
+        <h3>Вы действительно хотите закрыть комнату?</h3>
+        <div class="popup-buttons">
+          <button id="confirmCloseRoom" class="button button-danger">Да</button>
+          <button id="cancelCloseRoom" class="button button-disabled">Нет</button>
+        </div>
+      </div>
+    </div>
+    <div id="closeRoomPopupOverlay" class="popup-overlay"></div>
+
+    <!-- Попап для уведомления о расформировании комнаты (для игроков) -->
+    <div id="roomClosedPopup" class="popup">
+      <div class="popup-content">
+        <h3>Комната расформирована</h3>
+        <div class="popup-buttons">
+          <button id="closeRoomClosedPopup" class="button button-disabled">Закрыть</button>
+        </div>
+      </div>
+    </div>
+    <div id="roomClosedPopupOverlay" class="popup-overlay"></div>
+
+    <div id="roomFullPopup" class="popup">
+      <div class="popup-content">
+        <h3 id="roomFullMessage">Комната заполнена!</h3>
+        <div class="popup-buttons">
+          <button id="closeRoomFullPopup" class="button">Закрыть</button>
+        </div>
+      </div>
+    </div>
+    <div id="roomFullPopupOverlay" class="popup-overlay"></div>
+
+    <div id="popupOverlay" class="overlay"></div>
+
+    <!-- Оверлей и результаты -->
     <div class="overlay"></div>
     <div id="gameResult"></div>
   </main>
+
+  <!-- Переключатель темы -->
   <div id="themeToggle"></div>
+
+  <!-- Футер -->
   <footer>Создано с ❤️ <a href="https://t.me/B4DCAT" target="_blank">Mr Vi</a></footer>
+
+  <!-- Подключение скриптов -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="/room.js"></script>
 </body>

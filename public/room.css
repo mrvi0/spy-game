@@ -1,10 +1,380 @@
-main {
-  max-width: 600px;
+/* Основной контейнер */
+.room-container {
+  max-width: 90%; 
   width: 100%;
   margin: 0 auto;
   padding-bottom: 20px;
 }
 
+/* Контейнер для контента (список игроков + игра/чат) */
+.room-content {
+  display: flex;
+  gap: 20px; /* Отступ между блоками */
+  margin-bottom: 20px; /* Отступ перед кнопками управления */
+}
+
+/* Список игроков */
+
+.players-list {
+  width: 25%; /* 2/8 от рабочей области (70% экрана) */
+  max-height: 600px; /* Ограничение высоты */
+  overflow-y: auto; /* Скролл, если игроков много */
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  scroll-behavior: smooth; /* Сглаженный скролл */
+}
+
+/* Кастомизация скроллбара */
+.players-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.players-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 0 10px 10px 0;
+}
+
+.players-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 0 10px 10px 0;
+}
+
+.players-list::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+body.dark-theme .players-list {
+  background: #34495e;
+}
+
+body.dark-theme .players-list::-webkit-scrollbar-track {
+  background: #2c3e50;
+}
+
+body.dark-theme .players-list::-webkit-scrollbar-thumb {
+  background: #7f8c8d;
+}
+
+body.dark-theme .players-list::-webkit-scrollbar-thumb:hover {
+  background: #95a5a6;
+}
+
+/* Список игроков */
+#players {
+  list-style: none;
+}
+
+/* Список игроков */
+#players .player-item {
+  height: 110px; /* 80 + 30 */
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+#players hr {
+  width: 100%;
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 0;
+}
+
+body.dark-theme #players hr {
+  border-top: 1px solid #7f8c8d;
+}
+
+/* Удаляем старые стили для hr внутри .player-item */
+#players .player-item hr {
+  display: none;
+}
+
+/* Аватар игрока */
+.player-item .avatar {
+  width: 50px;
+  height: 50px;
+  background: #bdc3c7;
+  border-radius: 50%;
+  margin-right: 15px;
+  background-size: cover !important; /* Добавляем cover */
+  background-position: center;
+}
+
+body.dark-theme .player-item .avatar {
+  background: #7f8c8d;
+}
+
+/* Контейнер для текста */
+.player-item .player-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Занимает оставшееся пространство */
+}
+
+/* Никнейм и статус */
+.player-item .player-name {
+  font-size: 1.2em;
+  margin-bottom: 4px;
+}
+
+.player-item .player-status {
+  font-size: 1em;
+}
+
+.player-item .status-not-ready {
+  color: #666; /* Серый для "Не готов" */
+}
+
+body.dark-theme .player-item .status-not-ready {
+  color: #ccc;
+}
+
+.player-item .status-ready {
+  color: #28a745; /* Зелёный для "Готов" */
+}
+
+body.dark-theme .player-item .status-ready {
+  color: #34c759;
+}
+
+.player-item .status-in-game {
+  color: #666; /* Серый для "В игре" */
+}
+
+body.dark-theme .player-item .status-in-game {
+  color: #ccc;
+}
+
+.player-item .status-excluded {
+  color: #dc3545; /* Красный для "Исключён", как у кнопки alert */
+}
+
+body.dark-theme .player-item .status-excluded {
+  color: #ff4d4f;
+}
+/* Контейнер для игры и чата */
+.game-content {
+  width: 75%; /* 6/8 от рабочей области (3/8 роль + 3/8 чат) */
+  display: flex;
+  flex-direction: row; /* Блоки в одну строку */
+  gap: 20px;
+}
+
+/* Контейнер для игры и чата */
+.game-content {
+  width: 75%; /* 6/8 от рабочей области (3/8 роль + 3/8 чат) */
+  display: flex;
+  flex-direction: row; /* Блоки в одну строку */
+  gap: 20px;
+}
+
+/* Блок с ролью/локацией */
+#gameCards {
+  width: 50%; /* 3/8 от рабочей области */
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 100%;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5em;
+}
+
+body.dark-theme .card {
+  background: #34495e;
+}
+
+.card:hover {
+  transform: none;
+}
+
+/* Стили для ожидания начала */
+.card.waiting {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.loader {
+  width: 40px;
+  height: 40px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #8e44ad;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+body.dark-theme .loader {
+  border: 5px solid #7f8c8d;
+  border-top: 5px solid #9b59b6;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Чат */
+.chat-section {
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 50%; /* 3/8 от рабочей области */
+  
+  display: flex;
+  flex-direction: column;
+}
+
+body.dark-theme .chat-section {
+  background: #34495e;
+}
+
+.chat-messages {
+  flex: 1; /* Занимает всё доступное пространство */
+  overflow-y: auto;
+  margin-bottom: 10px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+body.dark-theme .chat-messages {
+  border-color: #7f8c8d;
+}
+
+.chat-input {
+  display: flex;
+  gap: 10px;
+}
+
+#chatInput {
+  flex: 1;
+  padding: 8px;
+  font-size: 1em;
+  border: 1px solid #bdc3c7;
+  border-radius: 6px;
+}
+
+body.dark-theme #chatInput {
+  background: #34495e;
+  border-color: #7f8c8d;
+  color: #ecf0f1;
+}
+
+/* Кнопка отправки */
+#sendMessage {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+#sendMessage svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Элементы управления игрой */
+#gameControls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap; /* Чтобы кнопки переносились на маленьких экранах */
+}
+
+/* Попап игрока */
+.player-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 80%;
+  width: 400px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 2000;
+  display: none;
+}
+
+.player-popup.visible {
+  opacity: 1;
+  display: block;
+}
+
+body.dark-theme .player-popup {
+  background: rgba(52, 73, 94, 0.95);
+}
+
+.player-popup-content {
+  position: relative;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: #2c3e50;
+}
+
+body.dark-theme .close {
+  color: #fff;
+}
+
+.popup-avatar {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  margin-bottom: 20px;
+}
+
+/* Оверлей для попапа */
+#popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 1000;
+  display: none;
+}
+
+#popupOverlay.visible {
+  opacity: 1;
+  display: block;
+}
+
+/* Заголовки */
 h1 {
   font-size: 2em;
   text-align: center;
@@ -22,6 +392,7 @@ h2 {
   margin: 20px 0 10px;
 }
 
+/* Стили для меток и полей ввода */
 label {
   display: block;
   margin: 10px 0;
@@ -52,50 +423,12 @@ body.dark-theme input:disabled, body.dark-theme select:disabled {
   background: #2c3e50;
 }
 
+/* Удаляем старые стили для ul */
 ul {
-  list-style: none;
-  background: #fff;
-  padding: 15px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  display: none;
 }
 
-body.dark-theme ul {
-  background: #34495e;
-}
-
-li {
-  display: flex;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-}
-
-body.dark-theme li {
-  border-bottom: 1px solid #7f8c8d;
-}
-
-li:last-child {
-  border-bottom: none;
-}
-
-.avatar {
-  width: 24px;
-  height: 24px;
-  background: #bdc3c7;
-  border-radius: 50%;
-  margin-right: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-}
-
-body.dark-theme .avatar {
-  background: #7f8c8d;
-}
-
+/* Поле ввода имени (оставляем для совместимости) */
 .name-input {
   padding: 6px;
   font-size: 1em;
@@ -110,64 +443,197 @@ body.dark-theme .name-input {
   color: #ecf0f1;
 }
 
-#gameControls {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-#gameCards {
-  width: 100%;
-  max-width: 600px;
-  padding: 0 10px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-grow: 1;
-}
-
-.card {
-  background: #fff;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  width: 100%;
-  max-width: 400px;
-  height: 200px;
+/* Кнопки переключения настроек */
+.settings-toggle {
+  border: 1px solid #000000;
+  border-radius: 150px;
+  background-color: #6b7280;
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5em;
-  transition: transform 0.3s;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.3);
 }
 
-body.dark-theme .card {
-  background: #34495e;
+.settings-toggle:hover {
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.4);
 }
 
-.card:hover {
-  transform: scale(1.05);
+.settings-toggle:active {
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  transform: translateY(2px);
 }
 
-/* Мобильная адаптация */
-@media (max-width: 768px) {
-  h1 {
-    font-size: 1.5em;
-  }
-  h2 {
-    font-size: 1.3em;
-  }
-  input, select {
-    max-width: 100%;
-  }
-  #gameControls {
-    flex-direction: column;
-    gap: 5px;
-  }
-  .card {
-    height: 150px;
-    font-size: 1.2em;
-  }
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000; /* Оставляем как есть */
+  display: none;
+}
+
+.overlay.visible {
+  display: block;
+}
+
+/* Результаты игры */
+#gameResult {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 80%;
+  width: 400px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 1100; /* Меньше, чем у попапа */
+  display: none; /* Скрыт по умолчанию */
+}
+
+#gameResult.visible {
+  opacity: 1;
+  display: block;
+}
+
+body.dark-theme #gameResult {
+  background: rgba(52, 73, 94, 0.95);
+}
+
+/* Контейнер для кнопки "Выгнать" и счётчика голосов */
+.vote-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 5px 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  box-sizing: border-box;
+}
+
+.kick-button {
+  width: 50%;
+  padding: 5px 10px;
+  height: 30px; /* Фиксированная высота */
+  font-size: 0.9em;
+  background: #dc3545; /* Цвет button-danger */
+  color: #fff;
+  border: 1px solid #dc3545; /* Тонкая обводка */
+  border-radius: 5px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.kick-button:hover {
+  background: #c82333; /* Цвет при наведении, как у button-danger */
+  border-color: #c82333;
+}
+
+body.dark-theme .kick-button {
+  background: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+body.dark-theme .kick-button:hover {
+  background: #e63946;
+  border-color: #e63946;
+}
+
+.vote-counter {
+  font-size: 0.9em;
+  color: #666;
+}
+
+body.dark-theme .vote-counter {
+  color: #ccc;
+}
+
+.spy-label {
+  color: #ff4444; /* Красный цвет для метки "Шпион" */
+  font-weight: bold;
+}
+
+.status-excluded {
+  color: #ff4444; /* Красный цвет для исключённых игроков */
+}
+
+#gameResult ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+#gameResult li {
+  margin: 5px 0;
+}
+
+.popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--background-secondary);
+  border-radius: 10px;
+  padding: 20px;
+  z-index: 1001; /* Убедимся, что попап поверх всего */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.popup.visible {
+  display: block;
+}
+
+.popup-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.popup-overlay.visible {
+  display: block;
+}
+
+.popup-content h3 {
+  margin: 0 0 20px;
+  font-size: 1.2em;
+  text-align: center;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px
+}
+
+.button-secondary {
+  background: #666;
+  color: #fff;
+}
+
+.button-secondary:hover {
+  background: #555;
 }
