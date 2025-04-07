@@ -3,8 +3,18 @@
 <head>
   <title id="pageTitle">Комната</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/room.css">
+  <!-- Подключаем config.js для получения BASE_PATH -->
+  <script src="/config.js"></script>
+  <!-- Временные пути, которые будут заменены -->
+  <link id="stylesLink" rel="stylesheet" href="">
+  <link id="roomStylesLink" rel="stylesheet" href="">
+  <script>
+    // Ждём загрузки BASE_PATH и обновляем пути
+    window.addEventListener('load', () => {
+      document.getElementById('stylesLink').href = `${window.BASE_PATH}/css/styles.css`;
+      document.getElementById('roomStylesLink').href = `${window.BASE_PATH}/css/room.css`;
+    });
+  </script>
 </head>
 <body>
   <!-- Параллакс-фон -->
@@ -52,14 +62,14 @@
       <button id="saveSettings" class="button">Сохранить настройки</button>
       <div class="input-group">
         <label><span class="text">ID комнаты:</span>
-          <span id="roomIdText" style="font-weight: bold; color: #7C3AED;">${roomId}</span>
+          <span id="roomIdText" style="font-weight: bold; color: #7C3AED;"></span>
         </label>
       </div>
       <div class="button-group">
         <button id="copyUrlButton2" class="button button-secondary">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
             <g fill="currentColor">
-              <path d="M6.5 0A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0zm3 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5z"/>
+              <path d="M6.5 0A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0zm3 1a.5.5 0 1 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5z"/>
               <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1A2.5 2.5 0 0 1 9.5 5h-3A2.5 2.5 0 0 1 4 2.5zm4.5 6V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5a.5.5 0 0 1 1 0"/>
             </g>
           </svg> Скопировать
@@ -177,6 +187,19 @@
 
   <!-- Подключение скриптов -->
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/room.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const script = document.createElement('script');
+      script.src = `${window.BASE_PATH}/js/room.js`;
+      script.onload = () => {
+        console.log('[DEBUG] room.js fully loaded');
+      };
+      script.onerror = () => {
+        console.error('[ERROR] Failed to load room.js');
+      };
+      document.body.appendChild(script);
+    });
+  </script>
+  <script src="/spy/js/parallax.js"></script>
 </body>
 </html>
