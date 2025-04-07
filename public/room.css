@@ -1,3 +1,4 @@
+/* Основной контейнер */
 main {
   max-width: 600px;
   width: 100%;
@@ -5,6 +6,7 @@ main {
   padding-bottom: 20px;
 }
 
+/* Заголовки */
 h1 {
   font-size: 2em;
   text-align: center;
@@ -22,6 +24,7 @@ h2 {
   margin: 20px 0 10px;
 }
 
+/* Стили для меток и полей ввода */
 label {
   display: block;
   margin: 10px 0;
@@ -52,6 +55,7 @@ body.dark-theme input:disabled, body.dark-theme select:disabled {
   background: #2c3e50;
 }
 
+/* Список игроков */
 ul {
   list-style: none;
   background: #fff;
@@ -80,6 +84,7 @@ li:last-child {
   border-bottom: none;
 }
 
+/* Аватар игрока */
 .avatar {
   width: 24px;
   height: 24px;
@@ -96,6 +101,7 @@ body.dark-theme .avatar {
   background: #7f8c8d;
 }
 
+/* Поле ввода имени */
 .name-input {
   padding: 6px;
   font-size: 1em;
@@ -110,6 +116,7 @@ body.dark-theme .name-input {
   color: #ecf0f1;
 }
 
+/* Элементы управления игрой */
 #gameControls {
   display: flex;
   gap: 10px;
@@ -117,6 +124,7 @@ body.dark-theme .name-input {
   margin-bottom: 20px;
 }
 
+/* Карточки игры */
 #gameCards {
   width: 100%;
   max-width: 600px;
@@ -172,8 +180,8 @@ body.dark-theme .card {
   }
 }
 
+/* Кнопки переключения настроек */
 .settings-toggle {
-  
   border: 1px solid #000000; /* Чёрная обводка 5px */
   border-radius: 150px; /* Скруглённые края */
   background-color: #6b7280; /* Серый фон, как у button-secondary */

@@ -7,7 +7,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const VKontakteStrategy = require('passport-vkontakte').Strategy;
 const YandexStrategy = require('passport-yandex').Strategy;
 const session = require('express-session');
-const sharedsession = require('express-socket.io-session'); // Добавляем модуль
+const sharedsession = require('express-socket.io-session');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -127,6 +127,7 @@ app.get('/room/:roomId', (req, res) => {
   }
 });
 
+// Периодическая проверка активности создателя комнаты
 setInterval(() => {
   for (const roomId in rooms) {
     const room = rooms[roomId];
@@ -145,6 +146,7 @@ setInterval(() => {
   }
 }, 60 * 1000);
 
+// Обработка событий Socket.IO
 io.on('connection', (socket) => {
   console.log('Игрок подключился:', socket.id);
 
@@ -178,7 +180,7 @@ io.on('connection', (socket) => {
       location: null
     };
     socket.join(roomId);
-    socket.playerId = creatorPlayerId; // Сохраняем playerId в сокете
+    socket.playerId = creatorPlayerId;
     callback({ roomId, creatorPlayerId });
     io.to(roomId).emit('settingsUpdated', {
       roomName: rooms[roomId].roomName,
@@ -197,7 +199,7 @@ io.on('connection', (socket) => {
         existingPlayer.id = socket.id;
         const user = socket.handshake.session.passport ? socket.handshake.session.passport.user : null;
         let avatarUrl = null;
-        let name = existingPlayer.name; // Сохраняем текущее имя, если пользователь не авторизован
+        let name = existingPlayer.name;
         if (user) {
           if (user.provider === 'google') {
             name = user.displayName;
@@ -217,7 +219,7 @@ io.on('connection', (socket) => {
         existingPlayer.avatarUrl = avatarUrl;
         console.log(`[DEBUG] Existing player updated in room ${roomId}, name: ${name}, avatarUrl: ${avatarUrl}`);
         socket.join(roomId);
-        socket.playerId = playerId; // Сохраняем playerId в сокете
+        socket.playerId = playerId;
         io.to(roomId).emit('playerList', rooms[roomId].players, rooms[roomId].spiesKnown);
         socket.emit('isCreator', rooms[roomId].creator === playerId);
         socket.emit('settingsUpdated', {
@@ -264,7 +266,7 @@ io.on('connection', (socket) => {
         const player = { id: socket.id, playerId: playerId, name, isReady: false, isCreator: false, isOut: false, votes: 0, isSpy: false, avatarUrl };
         console.log(`[DEBUG] New player joined room ${roomId}, name: ${name}, avatarUrl: ${avatarUrl}`);
         rooms[roomId].players.push(player);
-        socket.playerId = playerId; // Сохраняем playerId в сокете
+        socket.playerId = playerId;
         io.to(roomId).emit('playerList', rooms[roomId].players, rooms[roomId].spiesKnown);
         socket.emit('isCreator', rooms[roomId].creator === playerId);
         socket.emit('settingsUpdated', {

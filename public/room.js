@@ -15,6 +15,7 @@ if (!playerId) {
 }
 socket.emit('setPlayerId', playerId);
 socket.emit('joinRoom', { roomId, playerId });
+console.log('[DEBUG] Joining room:', roomId, 'with playerId:', playerId);
 
 const gameControls = document.getElementById('gameControls');
 function updateControls() {
@@ -30,12 +31,24 @@ function updateControls() {
       document.getElementById('resetGame').style.display = 'block';
       gameControls.insertAdjacentHTML('afterbegin', `<button id="startVote" class="button">Начать голосование</button>`);
     }
-    document.getElementById('startGame')?.addEventListener('click', () => socket.emit('startGame', roomId));
-    document.getElementById('resetGame')?.addEventListener('click', () => socket.emit('resetGame', roomId));
-    document.getElementById('closeRoom')?.addEventListener('click', () => {
-      if (confirm('Вы уверены, что хотите закрыть комнату?')) socket.emit('closeRoom', roomId);
+    document.getElementById('startGame')?.addEventListener('click', () => {
+      socket.emit('startGame', roomId);
+      console.log('[DEBUG] Start game clicked for room:', roomId);
     });
-    document.getElementById('startVote')?.addEventListener('click', () => socket.emit('startVoting', roomId));
+    document.getElementById('resetGame')?.addEventListener('click', () => {
+      socket.emit('resetGame', roomId);
+      console.log('[DEBUG] Reset game clicked for room:', roomId);
+    });
+    document.getElementById('closeRoom')?.addEventListener('click', () => {
+      if (confirm('Вы уверены, что хотите закрыть комнату?')) {
+        socket.emit('closeRoom', roomId);
+        console.log('[DEBUG] Close room clicked for room:', roomId);
+      }
+    });
+    document.getElementById('startVote')?.addEventListener('click', () => {
+      socket.emit('startVoting', roomId);
+      console.log('[DEBUG] Start voting clicked for room:', roomId);
+    });
   } else {
     gameControls.innerHTML = `
       <button id="readyToggle" class="button button-secondary" style="${gameStarted ? 'display: none;' : ''}">Не готов</button>
@@ -43,14 +56,21 @@ function updateControls() {
     `;
     if (gameStarted) {
       gameControls.insertAdjacentHTML('afterbegin', `<button id="startVote" class="button">Начать голосование</button>`);
-      document.getElementById('startVote')?.addEventListener('click', () => socket.emit('startVoting', roomId));
+      document.getElementById('startVote')?.addEventListener('click', () => {
+        socket.emit('startVoting', roomId);
+        console.log('[DEBUG] Start voting clicked for room:', roomId);
+      });
     }
     document.getElementById('readyToggle')?.addEventListener('click', () => {
       isReady = !isReady;
       socket.emit('setReady', { roomId, playerId, isReady });
+      console.log('[DEBUG] Ready toggle clicked:', { roomId, playerId, isReady });
       updateReadyButton();
     });
-    document.getElementById('leaveRoom')?.addEventListener('click', () => socket.emit('leaveRoom', { roomId, playerId }));
+    document.getElementById('leaveRoom')?.addEventListener('click', () => {
+      socket.emit('leaveRoom', { roomId, playerId });
+      console.log('[DEBUG] Leave room clicked:', { roomId, playerId });
+    });
   }
   updateReadyButton();
 }
@@ -74,7 +94,7 @@ socket.on('playerList', (players, spiesKnown) => {
     avatar.className = 'avatar';
     // Проверяем, есть ли avatarUrl у игрока
     if (player.avatarUrl) {
-      console.log(`[DEBUG] Avatar URL for player ${player.name}: ${player.avatarUrl}`); // Отладочный вывод
+      console.log(`[DEBUG] Avatar URL for player ${player.name}: ${player.avatarUrl}`);
       avatar.style.backgroundImage = `url(${player.avatarUrl})`;
       avatar.style.backgroundSize = 'cover';
       avatar.textContent = '';
@@ -96,7 +116,10 @@ socket.on('playerList', (players, spiesKnown) => {
     voteButton.textContent = '✔';
     voteButton.style.display = voting && !player.isOut ? 'inline-block' : 'none';
     voteButton.onclick = () => {
-      if (!player.isOut) socket.emit('vote', { roomId, targetId: player.playerId, voterId: playerId });
+      if (!player.isOut) {
+        socket.emit('vote', { roomId, targetId: player.playerId, voterId: playerId });
+        console.log('[DEBUG] Vote cast:', { roomId, targetId: player.playerId, voterId: playerId });
+      }
     };
     const input = document.createElement('input');
     input.className = 'name-input';
@@ -109,6 +132,7 @@ socket.on('playerList', (players, spiesKnown) => {
     okButton.onclick = () => {
       if (player.playerId === playerId) {
         socket.emit('changeName', { roomId, playerId, newName: input.value });
+        console.log('[DEBUG] Name changed:', { roomId, playerId, newName: input.value });
         nameSpan.style.display = 'inline';
         input.style.display = 'none';
         okButton.style.display = 'none';
@@ -120,6 +144,7 @@ socket.on('playerList', (players, spiesKnown) => {
         input.style.display = 'inline';
         okButton.style.display = 'inline';
         input.focus();
+        console.log('[DEBUG] Name edit clicked for player:', playerId);
       }
     };
     li.appendChild(avatar);
@@ -134,16 +159,19 @@ socket.on('playerList', (players, spiesKnown) => {
     li.appendChild(okButton);
     playerList.appendChild(li);
   });
+  console.log('[DEBUG] Player list updated:', players);
 });
 
 socket.on('roomFull', (reason) => {
   alert(reason || 'Комната заполнена!');
+  console.log('[DEBUG] Room full:', reason);
 });
 
 socket.on('isCreator', (creator) => {
   isCreator = creator;
   updateControls();
   if (isCreator) document.getElementById('sidebarToggle').style.display = 'block';
+  console.log('[DEBUG] Creator status:', isCreator);
 });
 
 socket.on('settingsUpdated', (settings) => {
@@ -156,6 +184,7 @@ socket.on('settingsUpdated', (settings) => {
   document.getElementById('roomTitle').textContent = `${settings.roomName} (${roomId})`;
   document.getElementById('pageTitle').textContent = settings.roomName;
   document.getElementById('roomInfo').textContent = `Игроков: ${settings.maxPlayers}, Шпионов: ${settings.spiesCount}`;
+  console.log('[DEBUG] Settings updated:', settings);
 });
 
 document.getElementById('saveSettings')?.addEventListener('click', () => {
@@ -163,6 +192,7 @@ document.getElementById('saveSettings')?.addEventListener('click', () => {
   const maxPlayers = parseInt(maxPlayersInput.value);
   if (maxPlayers > 15) {
     maxPlayersInput.classList.add('invalid');
+    console.log('[DEBUG] Invalid max players:', maxPlayers);
     return;
   }
   maxPlayersInput.classList.remove('invalid');
@@ -175,14 +205,17 @@ document.getElementById('saveSettings')?.addEventListener('click', () => {
     spiesKnown: document.getElementById('spiesKnown').checked
   };
   socket.emit('updateSettings', { roomId, settings });
+  console.log('[DEBUG] Settings saved:', settings);
 });
 
 document.getElementById('sidebarToggle')?.addEventListener('click', () => {
   document.getElementById('sidebar').classList.add('open');
+  console.log('[DEBUG] Sidebar opened');
 });
 
 document.getElementById('sidebarClose')?.addEventListener('click', () => {
   document.getElementById('sidebar').classList.remove('open');
+  console.log('[DEBUG] Sidebar closed');
 });
 
 socket.on('role', ({ isSpy, location }) => {
@@ -210,6 +243,7 @@ socket.on('gameStarted', ({ gameTimer }) => {
     timeLeft--;
     if (timeLeft < 0) clearInterval(gameTimerInterval);
   }, 1000);
+  console.log('[DEBUG] Game started with timer:', gameTimer);
 });
 
 socket.on('gameReset', () => {
@@ -223,6 +257,7 @@ socket.on('gameReset', () => {
   document.querySelector('.overlay').classList.remove('visible');
   updateControls();
   document.querySelectorAll('#sidebar input, #sidebar select').forEach(el => el.disabled = false);
+  console.log('[DEBUG] Game reset');
 });
 
 socket.on('votingStarted', () => {
@@ -240,6 +275,7 @@ socket.on('votingStarted', () => {
       socket.emit('endVoting', roomId);
     }
   }, 1000);
+  console.log('[DEBUG] Voting started');
 });
 
 socket.on('voteUpdated', ({ targetId, votes }) => {
@@ -247,6 +283,7 @@ socket.on('voteUpdated', ({ targetId, votes }) => {
   const voteButton = document.querySelector(`span[data-player-id="${targetId}"]`)?.parentElement.querySelector('.vote-button');
   if (voteCount) voteCount.textContent = `${votes}/${document.querySelectorAll('li:not(.out)').length}`;
   if (voteButton) voteButton.classList.add('voted');
+  console.log('[DEBUG] Vote updated:', { targetId, votes });
 });
 
 socket.on('votingEnded', () => {
@@ -257,6 +294,7 @@ socket.on('votingEnded', () => {
   startVoteButton.disabled = false;
   socket.emit('requestPlayerList', roomId);
   updateControls();
+  console.log('[DEBUG] Voting ended');
 });
 
 socket.on('gameEnded', ({ spies, location }) => {
@@ -275,7 +313,9 @@ socket.on('gameEnded', ({ spies, location }) => {
   document.getElementById('closeResult').addEventListener('click', () => {
     result.classList.remove('visible');
     document.querySelector('.overlay').classList.remove('visible');
+    console.log('[DEBUG] Game result closed');
   });
+  console.log('[DEBUG] Game ended:', { spies, location });
 });
 
 socket.on('spiesLost', ({ location, spies }) => {
@@ -294,21 +334,26 @@ socket.on('spiesLost', ({ location, spies }) => {
   document.getElementById('closeResult').addEventListener('click', () => {
     result.classList.remove('visible');
     document.querySelector('.overlay').classList.remove('visible');
+    console.log('[DEBUG] Spies lost result closed');
   });
+  console.log('[DEBUG] Spies lost:', { location, spies });
 });
 
 socket.on('roomClosed', (reason) => {
   alert(`Комната закрыта: ${reason}`);
   window.location.href = '/';
+  console.log('[DEBUG] Room closed:', reason);
 });
 
 socket.on('playerLeft', () => {
   socket.emit('joinRoom', { roomId, playerId });
+  console.log('[DEBUG] Player left, rejoining room:', roomId);
 });
 
 socket.on('nameChanged', ({ playerId: changedPlayerId, newName }) => {
   const nameSpan = document.querySelector(`span[data-player-id="${changedPlayerId}"]`);
   if (nameSpan) nameSpan.textContent = newName;
+  console.log('[DEBUG] Name changed:', { playerId: changedPlayerId, newName });
 });
 
 socket.on('readyUpdated', ({ playerId: updatedPlayerId, isReady }) => {
@@ -318,6 +363,7 @@ socket.on('readyUpdated', ({ playerId: updatedPlayerId, isReady }) => {
     isReady = isReady;
     updateReadyButton();
   }
+  console.log('[DEBUG] Ready status updated:', { playerId: updatedPlayerId, isReady });
 });
 
 const themeToggle = document.getElementById('themeToggle');
@@ -327,6 +373,7 @@ if (localStorage.getItem('theme') === 'dark') {
 themeToggle.addEventListener('click', () => {
   document.body.classList.toggle('dark-theme');
   localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+  console.log('[DEBUG] Theme toggled:', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
 });
 
 // Устанавливаем ID комнаты как текст
@@ -343,8 +390,10 @@ copyUrlButton2.addEventListener('click', () => {
     setTimeout(() => {
       copyUrlMessage2.style.display = 'none';
     }, 2000);
+    console.log('[DEBUG] Room URL copied:', roomUrl);
   });
 });
+
 // Параллакс-эффект
 const parallax = document.querySelector('.parallax');
 if (parallax) {
@@ -404,21 +453,23 @@ if (parallax) {
     document.querySelector('.layer-5').style.transform = `translate(${x * 50}px, ${y * 50}px)`;
   });
 }
-// Динамическая корректировка размера шрифта для кнопок
-const buttons = document.querySelectorAll('.button');
+
+// Динамическая корректировка размера шрифта для кнопок (кроме #saveSettings)
+const buttons = document.querySelectorAll('.button:not(#saveSettings)');
 buttons.forEach(button => {
   const adjustFontSize = () => {
-    let fontSize = 16; // Начальный размер шрифта
+    let fontSize = 16;
     button.style.fontSize = `${fontSize}px`;
 
-    // Уменьшаем шрифт, пока текст не поместится
     while (button.scrollWidth > button.clientWidth && fontSize > 12) {
       fontSize -= 0.5;
       button.style.fontSize = `${fontSize}px`;
     }
+
+    const minFontSize = Math.min(...Array.from(buttons).map(b => parseFloat(b.style.fontSize) || 16));
+    buttons.forEach(b => b.style.fontSize = `${minFontSize}px`);
   };
 
-  // Вызываем при загрузке и при изменении размера окна
   adjustFontSize();
   window.addEventListener('resize', adjustFontSize);
 });

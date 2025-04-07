@@ -1,3 +1,4 @@
+/* Сброс стилей */
 * {
   margin: 0;
   padding: 0;
@@ -5,6 +6,7 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
 }
 
+/* Основные стили для body */
 body {
   background: #e6f0fa;
   color: #2c3e50;
@@ -54,7 +56,7 @@ body.dark-theme .bg-particle {
 /* Общие стили кнопок */
 .button {
   padding: 10px 20px;
-  font-size: clamp(12px, 1.5vw, 16px); /* Убираем !important */
+  font-size: 16px;
   font-weight: 700;
   border: 5px solid #000000;
   border-radius: 150px;
@@ -65,11 +67,19 @@ body.dark-theme .bg-particle {
     inset 0 2px 0 rgba(255, 255, 255, 0.3),
     inset 0 -2px 0 rgba(0, 0, 0, 0.3);
   width: 250px;
+  height: 60px; /* Фиксированная высота для одинакового размера */
+  line-height: 40px; /* Центрируем текст по вертикали */
   text-align: center;
   white-space: nowrap;
-  display: inline-block;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: inline-flex; /* Используем flex для центрирования */
+  align-items: center;
+  justify-content: center;
+}
+
+#saveSettings {
+  width: 250px; /* Больший размер */
+  height: 70px; /* Больший размер */
+  font-size: 18px; /* Фиксированный размер шрифта */
 }
 
 /* Эффект при наведении */
@@ -255,7 +265,6 @@ body.dark-theme #sidebar {
   position: fixed;
   top: 20px;
   left: 20px;
-  
   font-size: 1.5em;
   line-height: 40px;
   text-align: center;
@@ -541,6 +550,7 @@ body.dark-theme .header-center h1 {
   flex: 1;
   padding: 20px;
   text-align: center;
+  margin: 0 auto; /* Центрируем секцию на странице */
   margin-top: 60px; /* Отступ для заголовка */
 }
 
@@ -824,6 +834,7 @@ body.dark-theme .close {
     transform: translateX(20px);
   }
 }
+
 /* Параллакс-контейнер */
 .parallax {
   position: fixed;
@@ -896,6 +907,7 @@ body.dark-theme .close {
   background-size: 225px 225px; /* Увеличиваем размер градиента */
   opacity: 0.7;
 }
+
 .layer-1 .star, .layer-3 .star {
   animation: twinkle 2s infinite alternate;
 }
@@ -903,4 +915,105 @@ body.dark-theme .close {
 @keyframes twinkle {
   0% { opacity: 0.8; }
   100% { opacity: 0.2; }
+}
+
+/* Стили для аватара */
+.avatar-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  cursor: pointer;
+  margin: 0 auto; /* Центрируем блок внутри play-section */
+  display: block; /* Убедимся, что блок занимает свою ширину */
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid #000000;
+  object-fit: cover;
+}
+
+.edit-icon {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.input-group {
+  width: 100%; /* Занимает всю ширину секции */
+  text-align: center; /* Центрируем содержимое */
+}
+
+.button-group {
+  display: flex;
+  gap: 10px; /* Расстояние между кнопками */
+  justify-content: center; /* Центрируем кнопки */
+  width: 100%;
+}
+
+.login-button-container {
+  width: 100%;
+  text-align: center;
+}
+
+/* Модальное окно для выбора аватара */
+.avatar-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-modal.active {
+  display: flex;
+}
+
+.avatar-modal-content {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.avatar-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.avatar-list img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border 0.3s ease;
+  display: block; /* Убедимся, что изображения отображаются */
+}
+
+.avatar-list img:hover {
+  border: 2px solid #6b7280;
 }
