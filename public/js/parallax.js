@@ -22,7 +22,7 @@ if (parallax) {
   for (let i = 0; i < clusters; i++) {
     clusterCenters.push({
       x: Math.random() * 150,
-      y: Math.random() * 150
+      y: Math.random() * 150,
     });
   }
 

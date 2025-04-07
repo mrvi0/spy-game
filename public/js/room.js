@@ -26,14 +26,14 @@ function updateControls() {
   if (isCreator) {
     let buttonsHtml = '';
     if (!gameStarted || voting) {
-      buttonsHtml += `<button id="startGame" class="button">Начать игру</button>`;
+      buttonsHtml += '<button id="startGame" class="button">Начать игру</button>';
     } else {
-      buttonsHtml += `<button id="resetGame" class="button">Сбросить игру</button>`;
+      buttonsHtml += '<button id="resetGame" class="button">Сбросить игру</button>';
       if (!voting) {
-        buttonsHtml = `<button id="startVote" class="button">Начать голосование</button>` + buttonsHtml;
+        buttonsHtml = '<button id="startVote" class="button">Начать голосование</button>' + buttonsHtml;
       }
     }
-    buttonsHtml += `<button id="closeRoom" class="button button-danger">Закрыть комнату</button>`;
+    buttonsHtml += '<button id="closeRoom" class="button button-danger">Закрыть комнату</button>';
     gameControls.innerHTML = buttonsHtml;
 
     document.getElementById('startGame')?.addEventListener('click', () => {
@@ -59,9 +59,9 @@ function updateControls() {
       buttonsHtml += `<button id="readyToggle" class="button button-secondary">${isReady ? 'Готов' : 'Не готов'}</button>`;
     }
     if (gameStarted && !voting) {
-      buttonsHtml += `<button id="startVote" class="button">Начать голосование</button>`;
+      buttonsHtml += '<button id="startVote" class="button">Начать голосование</button>';
     }
-    buttonsHtml += `<button id="leaveRoom" class="button button-danger">Покинуть комнату</button>`;
+    buttonsHtml += '<button id="leaveRoom" class="button button-danger">Покинуть комнату</button>';
     gameControls.innerHTML = buttonsHtml;
 
     document.getElementById('startVote')?.addEventListener('click', () => {
@@ -104,7 +104,7 @@ socket.on('playerList', (playersList, spiesKnown) => {
   players.forEach(player => {
     const playerDiv = document.createElement('div');
     playerDiv.className = 'player-item';
-    if (player.isOut) playerDiv.classList.add('out');
+    if (player.isOut) {playerDiv.classList.add('out');}
 
     const avatar = document.createElement('div');
     avatar.className = 'avatar';
@@ -136,7 +136,7 @@ socket.on('playerList', (playersList, spiesKnown) => {
     playerDiv.appendChild(playerInfo);
 
     playerDiv.addEventListener('click', (e) => {
-      if (e.target.classList.contains('kick-button')) return;
+      if (e.target.classList.contains('kick-button')) {return;}
 
       const popup = document.getElementById('playerPopup');
       const popupAvatar = document.getElementById('popupAvatar');
@@ -163,9 +163,9 @@ socket.on('playerList', (playersList, spiesKnown) => {
       kickButton.textContent = 'Выгнать';
       kickButton.addEventListener('click', () => {
         socket.emit('vote', { 
-          roomId: roomId, 
+          roomId, 
           targetId: player.playerId, 
-          voterId: playerId 
+          voterId: playerId, 
         });
       });
 
@@ -254,11 +254,11 @@ document.getElementById('saveSettings')?.addEventListener('click', () => {
   maxPlayersInput.classList.remove('invalid');
   const settings = {
     roomName: document.getElementById('roomName').value,
-    maxPlayers: maxPlayers,
+    maxPlayers,
     spiesCount: parseInt(document.getElementById('spiesCount').value),
     locationTheme: document.getElementById('locationTheme').value,
     gameTimer: parseInt(document.getElementById('gameTimer').value) || 120,
-    spiesKnown: document.getElementById('spiesKnown').checked
+    spiesKnown: document.getElementById('spiesKnown').checked,
   };
   socket.emit('updateSettings', { roomId, settings });
 });
@@ -284,14 +284,14 @@ socket.on('gameStarted', ({ gameTimer }) => {
   document.querySelectorAll('#sidebar input, #sidebar select').forEach(el => el.disabled = true);
   let timeLeft = gameTimer || 120;
   const timerDisplay = document.getElementById('gameTimerDisplay');
-  if (gameTimerInterval) clearInterval(gameTimerInterval);
+  if (gameTimerInterval) {clearInterval(gameTimerInterval);}
   gameTimerInterval = setInterval(() => {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
     timerDisplay.textContent = `Осталось: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    if (timeLeft <= timeLeft * 0.1) timerDisplay.classList.add('warning');
+    if (timeLeft <= timeLeft * 0.1) {timerDisplay.classList.add('warning');}
     timeLeft--;
-    if (timeLeft < 0) clearInterval(gameTimerInterval);
+    if (timeLeft < 0) {clearInterval(gameTimerInterval);}
   }, 1000);
   socket.emit('requestPlayerList', roomId);
 });
@@ -299,7 +299,7 @@ socket.on('gameStarted', ({ gameTimer }) => {
 socket.on('gameReset', () => {
   gameStarted = false;
   voting = false;
-  if (gameTimerInterval) clearInterval(gameTimerInterval);
+  if (gameTimerInterval) {clearInterval(gameTimerInterval);}
   const cards = document.getElementById('gameCards');
   cards.innerHTML = `
     <div class="card waiting">
@@ -383,7 +383,7 @@ socket.on('gameEnded', ({ spiesWin, spies, location, players }) => {
 });
 
 socket.on('spiesLost', ({ location, spies, players }) => {
-  if (gameTimerInterval) clearInterval(gameTimerInterval);
+  if (gameTimerInterval) {clearInterval(gameTimerInterval);}
   document.getElementById('gameTimerDisplay').textContent = '';
   document.getElementById('gameTimerDisplay').classList.remove('warning');
   const result = document.getElementById('gameResult');
@@ -424,7 +424,7 @@ socket.on('roomClosed', (reason) => {
 
 socket.on('nameChanged', ({ playerId: changedPlayerId, newName }) => {
   const nameSpan = document.querySelector(`span[data-player-id="${changedPlayerId}"]`);
-  if (nameSpan) nameSpan.textContent = newName;
+  if (nameSpan) {nameSpan.textContent = newName;}
 });
 
 socket.on('readyUpdated', ({ playerId: updatedPlayerId, isReady: updatedIsReady }) => {

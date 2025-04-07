@@ -280,7 +280,7 @@ io.on('connection', (socket) => {
             }
           }
         }
-        const player = { id: socket.id, playerId: playerId, name, isReady: false, isCreator: false, isOut: false, votes: 0, isSpy: false, avatarUrl };
+        const player = { id: socket.id, playerId, name, isReady: false, isCreator: false, isOut: false, votes: 0, isSpy: false, avatarUrl };
         console.log(`[DEBUG] New player joined room ${roomId}, name: ${name}, avatarUrl: ${avatarUrl}`);
         rooms[roomId].players.push(player);
         socket.playerId = playerId;
@@ -340,7 +340,7 @@ io.on('connection', (socket) => {
       rooms[roomId].location = location;
 
       console.log(`[DEBUG] Room: ${roomId}`);
-      console.log(`[DEBUG] Settings:`, {
+      console.log('[DEBUG] Settings:', {
         maxPlayers: rooms[roomId].maxPlayers,
         spiesCount: rooms[roomId].spiesCount,
         locationTheme: rooms[roomId].locationTheme,
@@ -410,7 +410,7 @@ io.on('connection', (socket) => {
       rooms[roomId].votes[targetId] = (rooms[roomId].votes[targetId] || 0) + 1;
       rooms[roomId].votedPlayers.push(voterId);
       const targetPlayer = rooms[roomId].players.find(p => p.playerId === targetId);
-      if (targetPlayer) targetPlayer.votes = rooms[roomId].votes[targetId];
+      if (targetPlayer) {targetPlayer.votes = rooms[roomId].votes[targetId];}
       io.to(roomId).emit('voteUpdated', { targetId, votes: targetPlayer.votes, voterId });
       const activePlayers = rooms[roomId].players.filter(p => !p.isOut).length;
       const majority = Math.floor(activePlayers / 2) + 1;
