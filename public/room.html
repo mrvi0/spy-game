@@ -17,7 +17,7 @@
   </div>
 
   <!-- Основной контейнер -->
-  <main>
+  <main class="room-container">
     <h1 id="roomTitle">Комната <span id="roomId"></span></h1>
     <div id="roomInfo"></div>
     <div id="gameTimerDisplay"></div>
@@ -68,15 +68,56 @@
       <div id="copyUrlMessage2" style="color: #34c759; margin-top: 10px; display: none;">Ссылка скопирована</div>
     </div>
 
-    <!-- Список игроков -->
-    <h2>Игроки:</h2>
-    <ul id="players"></ul>
+    <!-- Контейнер для трёх блоков -->
+    <div class="room-content">
+      <!-- Список игроков -->
+      <div class="players-list">
+        <h2>Игроки:</h2>
+        <div id="players"></div>
+      </div>
+
+      <!-- Контейнер для роли и чата -->
+      <div class="game-content">
+        <!-- Блок с ролью/локацией -->
+        <div id="gameCards">
+          <div class="card waiting">
+            <div class="loader"></div>
+            <span>Ожидание начала</span>
+          </div>
+        </div>
+
+        <!-- Чат -->
+        <div class="chat-section">
+          <h2>Чат</h2>
+          <div id="chatMessages" class="chat-messages"></div>
+          <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Введите сообщение...">
+            <button id="sendMessage" class="button button-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Элементы управления игрой -->
     <div id="gameControls"></div>
 
-    <!-- Карточки игры -->
-    <div id="gameCards"></div>
+    <!-- Попап для игрока -->
+    <div id="playerPopup" class="player-popup">
+      <div class="player-popup-content">
+        <span id="closePopup" class="close">×</span>
+        <div class="player-info">
+          <img id="popupAvatar" class="popup-avatar" src="" alt="Avatar">
+          <h3 id="popupName"></h3>
+          <p id="popupStatus"></p>
+        </div>
+      </div>
+    </div>
+    <div id="popupOverlay" class="overlay"></div>
 
     <!-- Оверлей и результаты -->
     <div class="overlay"></div>

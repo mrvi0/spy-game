@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'https://dummyimage.com/100x100?text=Avatar18',
     ];
 
-    // Добавляем аватары в список
+    // Внутри обработчика выбора аватара
     avatarList.innerHTML = '';
     avatars.forEach(avatar => {
       const img = document.createElement('img');
@@ -277,10 +277,46 @@ document.addEventListener('DOMContentLoaded', () => {
       img.alt = 'Avatar';
       img.addEventListener('click', () => {
         avatarImage.src = avatar;
+        localStorage.setItem('selectedAvatar', avatar); // Сохраняем аватар
         avatarModal.classList.remove('active');
-        console.log('[DEBUG] Avatar selected:', avatar);
+        console.log('[DEBUG] Avatar selected and saved to localStorage:', avatar);
       });
       avatarList.appendChild(img);
+    });
+    
+    // При создании комнаты
+    createRoomButton.addEventListener('click', () => {
+      const nickname = nicknameInput.value.trim();
+      const language = languageSelect ? languageSelect.value : 'en';
+      const selectedAvatar = localStorage.getItem('selectedAvatar') || 'https://dummyimage.com/100x100?text=Default';
+      console.log('[DEBUG] Selected avatar from localStorage:', selectedAvatar); // Проверяем, что аватар берётся из localStorage
+      if (nickname) {
+        console.log('[DEBUG] Create Room clicked with nickname:', nickname, 'language:', language, 'avatar:', selectedAvatar);
+        socket.emit('createRoom', { maxPlayers: 10, spiesCount: 2, nickname, avatar: selectedAvatar }, (response) => {
+          const { roomId, creatorPlayerId } = response;
+          console.log('[DEBUG] Room created:', roomId, 'Creator Player ID:', creatorPlayerId);
+          localStorage.setItem('playerId', creatorPlayerId);
+          window.location.href = `/room/${roomId}`;
+        });
+      } else {
+        alert('Please enter a nickname');
+        console.log('[DEBUG] Create Room failed: No nickname provided');
+      }
+    });
+
+    // При подключении к комнате
+    connectButton.addEventListener('click', () => {
+      const nickname = nicknameInput.value.trim();
+      const language = languageSelect ? languageSelect.value : 'en';
+      const selectedAvatar = localStorage.getItem('selectedAvatar') || 'https://dummyimage.com/100x100?text=Default';
+      console.log('[DEBUG] Selected avatar from localStorage:', selectedAvatar); // Проверяем, что аватар берётся из localStorage
+      if (nickname) {
+        console.log('[DEBUG] Connect clicked with nickname:', nickname, 'language:', language, 'avatar:', selectedAvatar);
+        socket.emit('joinRoom', { roomId: 'defaultRoom', playerId: localStorage.getItem('playerId'), avatar: selectedAvatar });
+      } else {
+        alert('Please enter a nickname');
+        console.log('[DEBUG] Connect failed: No nickname provided');
+      }
     });
 
     // Открываем модальное окно

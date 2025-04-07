@@ -150,12 +150,13 @@ setInterval(() => {
 io.on('connection', (socket) => {
   console.log('Игрок подключился:', socket.id);
 
-  socket.on('createRoom', ({ maxPlayers, spiesCount, nickname }, callback) => {
+  // В обработчике createRoom
+  socket.on('createRoom', ({ maxPlayers, spiesCount, nickname, avatar }, callback) => {
     const roomId = `room-${Math.random().toString(36).substr(2, 9)}`;
     const creatorPlayerId = socket.id;
     const user = socket.handshake.session.passport ? socket.handshake.session.passport.user : null;
-    let avatarUrl = null;
-    if (user) {
+    let avatarUrl = avatar || 'https://dummyimage.com/100x100?text=Default';
+    if (user && !avatar) {
       if (user.provider === 'google') {
         if (user.photos && user.photos.length > 0) {
           avatarUrl = user.photos[0].value;
@@ -192,15 +193,16 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('joinRoom', ({ roomId, playerId }) => {
+  // В обработчике joinRoom
+  socket.on('joinRoom', ({ roomId, playerId, avatar }) => {
     if (rooms[roomId]) {
       const existingPlayer = rooms[roomId].players.find(p => p.playerId === playerId);
       if (existingPlayer) {
         existingPlayer.id = socket.id;
         const user = socket.handshake.session.passport ? socket.handshake.session.passport.user : null;
-        let avatarUrl = null;
+        let avatarUrl = avatar || 'https://dummyimage.com/100x100?text=Default';
         let name = existingPlayer.name;
-        if (user) {
+        if (user && !avatar) {
           if (user.provider === 'google') {
             name = user.displayName;
             if (user.photos && user.photos.length > 0) {
@@ -247,8 +249,8 @@ io.on('connection', (socket) => {
         socket.join(roomId);
         const user = socket.handshake.session.passport ? socket.handshake.session.passport.user : null;
         let name = `Guest${Math.floor(Math.random() * 10000)}`;
-        let avatarUrl = null;
-        if (user) {
+        let avatarUrl = avatar || 'https://dummyimage.com/100x100?text=Default';
+        if (user && !avatar) {
           if (user.provider === 'google') {
             name = user.displayName;
             if (user.photos && user.photos.length > 0) {
@@ -346,7 +348,12 @@ io.on('connection', (socket) => {
 
       setTimeout(() => {
         if (rooms[roomId] && rooms[roomId].started) {
-          io.to(roomId).emit('gameEnded', { spies: spyNames, location });
+          io.to(roomId).emit('gameEnded', { 
+            spiesWin: true, 
+            spies: spyNames, 
+            location: rooms[roomId].location,
+            players: rooms[roomId].players
+          });
           rooms[roomId].started = false;
         }
       }, rooms[roomId].gameTimer * 1000);
@@ -421,10 +428,19 @@ io.on('connection', (socket) => {
           const nonSpiesLeft = activePlayers.filter(p => !p.isSpy && !p.isOut).length;
 
           if (spiesLeft === 0) {
-            io.to(roomId).emit('spiesLost', { location: rooms[roomId].location, spies: rooms[roomId].spies.map(id => rooms[roomId].players.find(p => p.playerId === id).name) });
+            io.to(roomId).emit('spiesLost', { 
+              location: rooms[roomId].location, 
+              spies: rooms[roomId].spies.map(id => rooms[roomId].players.find(p => p.playerId === id).name),
+              players: rooms[roomId].players
+            });
             rooms[roomId].started = false;
           } else if (nonSpiesLeft === 0 || spiesLeft >= nonSpiesLeft) {
-            io.to(roomId).emit('gameEnded', { spies: rooms[roomId].spies.map(id => rooms[roomId].players.find(p => p.playerId === id).name), location: rooms[roomId].location });
+            io.to(roomId).emit('gameEnded', { 
+              spiesWin: true, 
+              spies: rooms[roomId].spies.map(id => rooms[roomId].players.find(p => p.playerId === id).name), 
+              location: rooms[roomId].location,
+              players: rooms[roomId].players
+            });
             rooms[roomId].started = false;
           }
         }
