@@ -155,4 +155,24 @@ if (parallax) {
     document.querySelector('.layer-5').style.transform = `translate(${x * 50}px, ${y * 50}px)`;
   });
 }
+
+// Динамическая корректировка размера шрифта для кнопок
+const buttons = document.querySelectorAll('.button');
+buttons.forEach(button => {
+  const adjustFontSize = () => {
+    let fontSize = 16; // Начальный размер шрифта
+    button.style.fontSize = `${fontSize}px`;
+
+    // Уменьшаем шрифт, пока текст не поместится
+    while (button.scrollWidth > button.clientWidth && fontSize > 12) {
+      fontSize -= 0.5;
+      button.style.fontSize = `${fontSize}px`;
+    }
+  };
+
+  // Вызываем при загрузке и при изменении размера окна
+  adjustFontSize();
+  window.addEventListener('resize', adjustFontSize);
+});
+
 });
