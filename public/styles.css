@@ -134,6 +134,22 @@ body.dark-theme .button-danger:hover {
   color: #2c3e50;
 }
 
+.button-disabled {
+  background: #898c8f;
+}
+
+.button-disabled:hover {
+  background: #a6aaad;
+}
+
+body.dark-theme .button-disabled {
+  background: #898c8f;
+}
+
+body.dark-theme .button-disabled:hover {
+  background: #a6aaad;
+}
+
 body.dark-theme .button-secondary {
   background: #1E3A8A; /* Тёмно-синий с hotellab.io */
   color: white;

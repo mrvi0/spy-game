@@ -162,6 +162,7 @@ socket.on('playerList', (playersList, spiesKnown) => {
     playerList.appendChild(playerDiv);
 
     if (voting && !player.isOut) {
+      console.log(`[DEBUG] Adding vote controls for player ${player.name} (playerId: ${player.playerId})`);
       const voteContainer = document.createElement('div');
       voteContainer.className = 'vote-container';
 
@@ -169,12 +170,17 @@ socket.on('playerList', (playersList, spiesKnown) => {
       kickButton.className = 'button alert kick-button';
       kickButton.textContent = 'Выгнать';
       kickButton.addEventListener('click', () => {
-        socket.emit('vote', { playerId: player.playerId });
-        console.log('[DEBUG] Voted to kick player:', player.playerId);
+        socket.emit('vote', { 
+          roomId: roomId, 
+          targetId: player.playerId, 
+          voterId: playerId 
+        });
+        console.log('[DEBUG] Voted to kick player:', { roomId, targetId: player.playerId, voterId: playerId });
       });
 
       const voteCounter = document.createElement('span');
       voteCounter.className = 'vote-counter';
+      voteCounter.dataset.playerId = player.playerId;
       const activePlayers = players.filter(p => !p.isOut).length;
       voteCounter.textContent = `Голосов: ${player.votes}/${activePlayers}`;
 
@@ -339,16 +345,23 @@ socket.on('votingStarted', () => {
       socket.emit('endVoting', roomId);
     }
   }, 1000);
+  socket.emit('requestPlayerList', roomId);
   console.log('[DEBUG] Voting started');
 });
 
-socket.on('voteUpdated', ({ targetId, votes }) => {
+socket.on('voteUpdated', ({ targetId, votes, voterId }) => {
   const activePlayers = players.filter(p => !p.isOut).length;
-  const voteCount = document.querySelector(`span[data-player-id="${targetId}"]`)?.parentElement.nextElementSibling?.querySelector('.vote-counter');
-  const voteButton = document.querySelector(`span[data-player-id="${targetId}"]`)?.parentElement.nextElementSibling?.querySelector('.kick-button');
-  if (voteCount) voteCount.textContent = `Голосов: ${votes}/${activePlayers}`;
-  if (voteButton) voteButton.classList.add('voted');
-  console.log('[DEBUG] Vote updated:', { targetId, votes });
+  const voteCounter = document.querySelector(`.vote-counter[data-player-id="${targetId}"]`);
+  if (voteCounter) {
+    voteCounter.textContent = `Голосов: ${votes}/${activePlayers}`;
+  }
+  if (voterId === playerId) {
+    document.querySelectorAll('.kick-button').forEach(button => {
+      button.classList.add('voted');
+      button.disabled = true;
+    });
+  }
+  console.log('[DEBUG] Vote updated:', { targetId, votes, voterId });
 });
 
 socket.on('votingEnded', () => {
@@ -431,10 +444,11 @@ socket.on('roomClosed', (reason) => {
   console.log('[DEBUG] Room closed:', reason);
 });
 
-socket.on('playerLeft', () => {
-  socket.emit('joinRoom', { roomId, playerId, avatar: selectedAvatar });
-  console.log('[DEBUG] Player left, rejoining room:', roomId);
-});
+// Удаляем обработчик playerLeft, чтобы избежать повторного подключения
+// socket.on('playerLeft', () => {
+//   socket.emit('joinRoom', { roomId, playerId, avatar: selectedAvatar });
+//   console.log('[DEBUG] Player left, rejoining room:', roomId);
+// });
 
 socket.on('nameChanged', ({ playerId: changedPlayerId, newName }) => {
   const nameSpan = document.querySelector(`span[data-player-id="${changedPlayerId}"]`);
@@ -453,6 +467,37 @@ socket.on('readyUpdated', ({ playerId: updatedPlayerId, isReady: updatedIsReady 
     updateReadyButton();
   }
   console.log('[DEBUG] Ready status updated:', { playerId: updatedPlayerId, isReady: updatedIsReady });
+});
+
+// Обработчики для кнопок в попапе подтверждения
+document.getElementById('confirmLeave')?.addEventListener('click', () => {
+  const leaveRoomPopup = document.getElementById('leaveRoomPopup');
+  const leaveRoomPopupOverlay = document.getElementById('leaveRoomPopupOverlay');
+  
+  leaveRoomPopup.classList.remove('visible');
+  leaveRoomPopupOverlay.classList.remove('visible');
+  
+  socket.emit('leaveRoom', { roomId, playerId });
+  console.log('[DEBUG] Confirmed leaving room:', { roomId, playerId });
+  window.location.href = '/';
+});
+
+document.getElementById('cancelLeave')?.addEventListener('click', () => {
+  const leaveRoomPopup = document.getElementById('leaveRoomPopup');
+  const leaveRoomPopupOverlay = document.getElementById('leaveRoomPopupOverlay');
+  
+  leaveRoomPopup.classList.remove('visible');
+  leaveRoomPopupOverlay.classList.remove('visible');
+  console.log('[DEBUG] Canceled leaving room');
+});
+
+document.getElementById('leaveRoomPopupOverlay')?.addEventListener('click', () => {
+  const leaveRoomPopup = document.getElementById('leaveRoomPopup');
+  const leaveRoomPopupOverlay = document.getElementById('leaveRoomPopupOverlay');
+  
+  leaveRoomPopup.classList.remove('visible');
+  leaveRoomPopupOverlay.classList.remove('visible');
+  console.log('[DEBUG] Leave room popup closed by clicking overlay');
 });
 
 const themeToggle = document.getElementById('themeToggle');
@@ -552,40 +597,4 @@ buttons.forEach(button => {
 
   adjustFontSize();
   window.addEventListener('resize', adjustFontSize);
-});
-
-// Обработчики для кнопок в попапе подтверждения
-document.getElementById('confirmLeave')?.addEventListener('click', () => {
-  const leaveRoomPopup = document.getElementById('leaveRoomPopup');
-  const leaveRoomPopupOverlay = document.getElementById('leaveRoomPopupOverlay');
-  
-  // Скрываем попап
-  leaveRoomPopup.classList.remove('visible');
-  leaveRoomPopupOverlay.classList.remove('visible');
-  
-  // Отправляем событие leaveRoom и перенаправляем на главную страницу
-  socket.emit('leaveRoom', { roomId, playerId });
-  console.log('[DEBUG] Confirmed leaving room:', { roomId, playerId });
-  window.location.href = '/'; // Перенаправление в корень сайта
-});
-
-document.getElementById('cancelLeave')?.addEventListener('click', () => {
-  const leaveRoomPopup = document.getElementById('leaveRoomPopup');
-  const leaveRoomPopupOverlay = document.getElementById('leaveRoomPopupOverlay');
-  
-  // Скрываем попап
-  leaveRoomPopup.classList.remove('visible');
-  leaveRoomPopupOverlay.classList.remove('visible');
-  console.log('[DEBUG] Canceled leaving room');
-});
-
-// Закрытие попапа при клике на overlay
-document.getElementById('leaveRoomPopupOverlay')?.addEventListener('click', () => {
-  const leaveRoomPopup = document.getElementById('leaveRoomPopup');
-  const leaveRoomPopupOverlay = document.getElementById('leaveRoomPopupOverlay');
-  
-  // Скрываем попап
-  leaveRoomPopup.classList.remove('visible');
-  leaveRoomPopupOverlay.classList.remove('visible');
-  console.log('[DEBUG] Leave room popup closed by clicking overlay');
 });

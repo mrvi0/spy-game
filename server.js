@@ -396,15 +396,18 @@ io.on('connection', (socket) => {
       rooms[roomId].votedPlayers.push(voterId);
       const targetPlayer = rooms[roomId].players.find(p => p.playerId === targetId);
       if (targetPlayer) targetPlayer.votes = rooms[roomId].votes[targetId];
-      io.to(roomId).emit('voteUpdated', { targetId, votes: targetPlayer.votes });
+      io.to(roomId).emit('voteUpdated', { targetId, votes: targetPlayer.votes, voterId });
       const activePlayers = rooms[roomId].players.filter(p => !p.isOut).length;
       const majority = Math.floor(activePlayers / 2) + 1;
       if (targetPlayer.votes >= majority) {
         endVoting(roomId);
       }
+      if (rooms[roomId].votedPlayers.length === activePlayers) {
+        endVoting(roomId);
+      }
     }
   });
-
+  
   function endVoting(roomId) {
     if (rooms[roomId] && rooms[roomId].started) {
       const votes = rooms[roomId].votes;
@@ -426,7 +429,7 @@ io.on('connection', (socket) => {
           io.to(roomId).emit('playerList', rooms[roomId].players, rooms[roomId].spiesKnown);
           const spiesLeft = rooms[roomId].spies.filter(spyId => !rooms[roomId].players.find(p => p.playerId === spyId)?.isOut).length;
           const nonSpiesLeft = activePlayers.filter(p => !p.isSpy && !p.isOut).length;
-
+  
           if (spiesLeft === 0) {
             io.to(roomId).emit('spiesLost', { 
               location: rooms[roomId].location, 

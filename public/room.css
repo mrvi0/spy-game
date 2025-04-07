@@ -530,6 +530,7 @@ body.dark-theme #gameResult {
 }
 
 .kick-button {
+  width: 50%;
   padding: 5px 10px;
   height: 30px; /* Фиксированная высота */
   font-size: 0.9em;
@@ -625,6 +626,7 @@ body.dark-theme .vote-counter {
 .popup-buttons {
   display: flex;
   justify-content: space-around;
+  gap: 20px
 }
 
 .button-secondary {
