@@ -50,10 +50,12 @@ function updateControls() {
       console.log('[DEBUG] Reset game clicked for room:', roomId);
     });
     document.getElementById('closeRoom')?.addEventListener('click', () => {
-      if (confirm('Вы уверены, что хотите закрыть комнату?')) {
-        socket.emit('closeRoom', roomId);
-        console.log('[DEBUG] Close room clicked for room:', roomId);
-      }
+      const closeRoomPopup = document.getElementById('closeRoomPopup');
+      const closeRoomPopupOverlay = document.getElementById('closeRoomPopupOverlay');
+      
+      closeRoomPopup.classList.add('visible');
+      closeRoomPopupOverlay.classList.add('visible');
+      console.log('[DEBUG] Close room popup opened');
     });
   } else {
     gameControls.innerHTML = `
@@ -76,12 +78,10 @@ function updateControls() {
       updateReadyButton();
     });
 
-    // Обработчик для кнопки "Покинуть комнату"
     document.getElementById('leaveRoom')?.addEventListener('click', () => {
       const leaveRoomPopup = document.getElementById('leaveRoomPopup');
       const leaveRoomPopupOverlay = document.getElementById('leaveRoomPopupOverlay');
       
-      // Показываем попап
       leaveRoomPopup.classList.add('visible');
       leaveRoomPopupOverlay.classList.add('visible');
       console.log('[DEBUG] Leave room popup opened');
@@ -222,7 +222,7 @@ document.querySelector('.overlay')?.addEventListener('click', () => {
 });
 
 socket.on('roomFull', (reason) => {
-  alert(reason || 'Комната заполнена!');
+  alert(reason || 'Комната заполнена!'); // Этот alert пока оставим, можно заменить позже
   console.log('[DEBUG] Room full:', reason);
 });
 
@@ -439,16 +439,13 @@ socket.on('spiesLost', ({ location, spies, players }) => {
 });
 
 socket.on('roomClosed', (reason) => {
-  alert(`Комната закрыта: ${reason}`);
-  window.location.href = '/';
-  console.log('[DEBUG] Room closed:', reason);
+  const roomClosedPopup = document.getElementById('roomClosedPopup');
+  const roomClosedPopupOverlay = document.getElementById('roomClosedPopupOverlay');
+  
+  roomClosedPopup.classList.add('visible');
+  roomClosedPopupOverlay.classList.add('visible');
+  console.log('[DEBUG] Room closed popup opened:', reason);
 });
-
-// Удаляем обработчик playerLeft, чтобы избежать повторного подключения
-// socket.on('playerLeft', () => {
-//   socket.emit('joinRoom', { roomId, playerId, avatar: selectedAvatar });
-//   console.log('[DEBUG] Player left, rejoining room:', roomId);
-// });
 
 socket.on('nameChanged', ({ playerId: changedPlayerId, newName }) => {
   const nameSpan = document.querySelector(`span[data-player-id="${changedPlayerId}"]`);
@@ -469,7 +466,7 @@ socket.on('readyUpdated', ({ playerId: updatedPlayerId, isReady: updatedIsReady 
   console.log('[DEBUG] Ready status updated:', { playerId: updatedPlayerId, isReady: updatedIsReady });
 });
 
-// Обработчики для кнопок в попапе подтверждения
+// Обработчики для попапа "Покинуть комнату"
 document.getElementById('confirmLeave')?.addEventListener('click', () => {
   const leaveRoomPopup = document.getElementById('leaveRoomPopup');
   const leaveRoomPopupOverlay = document.getElementById('leaveRoomPopupOverlay');
@@ -498,6 +495,48 @@ document.getElementById('leaveRoomPopupOverlay')?.addEventListener('click', () =
   leaveRoomPopup.classList.remove('visible');
   leaveRoomPopupOverlay.classList.remove('visible');
   console.log('[DEBUG] Leave room popup closed by clicking overlay');
+});
+
+// Обработчики для попапа закрытия комнаты
+document.getElementById('confirmCloseRoom')?.addEventListener('click', () => {
+  const closeRoomPopup = document.getElementById('closeRoomPopup');
+  const closeRoomPopupOverlay = document.getElementById('closeRoomPopupOverlay');
+  
+  closeRoomPopup.classList.remove('visible');
+  closeRoomPopupOverlay.classList.remove('visible');
+  
+  socket.emit('closeRoom', roomId);
+  console.log('[DEBUG] Confirmed closing room:', roomId);
+});
+
+document.getElementById('cancelCloseRoom')?.addEventListener('click', () => {
+  const closeRoomPopup = document.getElementById('closeRoomPopup');
+  const closeRoomPopupOverlay = document.getElementById('closeRoomPopupOverlay');
+  
+  closeRoomPopup.classList.remove('visible');
+  closeRoomPopupOverlay.classList.remove('visible');
+  console.log('[DEBUG] Canceled closing room');
+});
+
+document.getElementById('closeRoomPopupOverlay')?.addEventListener('click', () => {
+  const closeRoomPopup = document.getElementById('closeRoomPopup');
+  const closeRoomPopupOverlay = document.getElementById('closeRoomPopupOverlay');
+  
+  closeRoomPopup.classList.remove('visible');
+  closeRoomPopupOverlay.classList.remove('visible');
+  console.log('[DEBUG] Close room popup closed by clicking overlay');
+});
+
+// Обработчик для попапа "Комната расформирована"
+document.getElementById('closeRoomClosedPopup')?.addEventListener('click', () => {
+  const roomClosedPopup = document.getElementById('roomClosedPopup');
+  const roomClosedPopupOverlay = document.getElementById('roomClosedPopupOverlay');
+  
+  roomClosedPopup.classList.remove('visible');
+  roomClosedPopupOverlay.classList.remove('visible');
+  console.log('[DEBUG] Room closed popup closed');
+  
+  window.location.href = '/';
 });
 
 const themeToggle = document.getElementById('themeToggle');

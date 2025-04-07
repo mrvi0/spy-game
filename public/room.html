@@ -129,6 +129,29 @@
     </div>
     <div id="leaveRoomPopupOverlay" class="popup-overlay"></div>
 
+    <!-- Попап для подтверждения закрытия комнаты (для создателя) -->
+    <div id="closeRoomPopup" class="popup">
+      <div class="popup-content">
+        <h3>Вы действительно хотите закрыть комнату?</h3>
+        <div class="popup-buttons">
+          <button id="confirmCloseRoom" class="button button-danger">Да</button>
+          <button id="cancelCloseRoom" class="button button-disabled">Нет</button>
+        </div>
+      </div>
+    </div>
+    <div id="closeRoomPopupOverlay" class="popup-overlay"></div>
+
+    <!-- Попап для уведомления о расформировании комнаты (для игроков) -->
+    <div id="roomClosedPopup" class="popup">
+      <div class="popup-content">
+        <h3>Комната расформирована</h3>
+        <div class="popup-buttons">
+          <button id="closeRoomClosedPopup" class="button button-disabled">Закрыть</button>
+        </div>
+      </div>
+    </div>
+    <div id="roomClosedPopupOverlay" class="popup-overlay"></div>
+
     <div id="popupOverlay" class="overlay"></div>
 
     <!-- Оверлей и результаты -->
