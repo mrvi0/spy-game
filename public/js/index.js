@@ -1,139 +1,113 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const socket = io();
+const socket = io();
 
-  const connectButton = document.getElementById('connectButton');
-  const createRoomButton = document.getElementById('createRoom');
-  const nicknameInput = document.getElementById('nickname');
-  const languageSelect = document.getElementById('language');
-  // Исправляем селектор: вместо .avatar-icon используем .avatar-image
-  const avatarImage = document.querySelector('.avatar-image');
+socket.on('connect', () => {
+  console.log('[CLIENT] Connected to server with socket ID:', socket.id);
+});
 
-  // Кнопки авторизации
-  const googleButtons = document.querySelectorAll('.social-button.google');
-  const vkButtons = document.querySelectorAll('.social-button.vk');
-  const yandexButtons = document.querySelectorAll('.social-button.yandex');
+socket.on('connect_error', (error) => {
+  console.error('[CLIENT] Connection error:', error.message);
+});
 
-  // Проверка авторизации при загрузке страницы
-  fetch('/user')
-    .then(response => response.json())
-    .then(user => {
-      if (user) {
-        console.log('[DEBUG] User fetched:', user); // Дебаг: данные пользователя
-        displayUser(user);
-      } else {
-        console.log('[DEBUG] No user logged in');
-      }
-    })
-    .catch(err => {
-      console.error('[ERROR] Failed to fetch user:', err);
-    });
+socket.on('disconnect', () => {
+  console.log('[CLIENT] Disconnected from server');
+});
 
-  // Обработчики для кнопок авторизации
-  googleButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      console.log('[DEBUG] Google login clicked');
-      window.location.href = '/auth/google';
-    });
+const connectButton = document.getElementById('connectButton');
+const createRoomButton = document.getElementById('createRoom');
+const nicknameInput = document.getElementById('nickname');
+const avatarImage = document.querySelector('.avatar-image');
+
+fetch('/user')
+  .then(response => response.json())
+  .then(user => {
+    if (user) {
+      console.log('[DEBUG] User fetched:', user);
+      displayUser(user);
+    }
+  })
+  .catch(err => {
+    console.error('[ERROR] Failed to fetch user:', err);
   });
 
-  vkButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      console.log('[DEBUG] VK login clicked');
-      window.location.href = '/auth/vk';
-    });
-  });
-
-  yandexButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      console.log('[DEBUG] Yandex login clicked');
-      window.location.href = '/auth/yandex';
-    });
-  });
-
-  // Функция отображения данных пользователя
-  function displayUser(user) {
-    let nickname = user.displayName || user.username || 'User';
-    if (user.provider === 'google') {
-      nickname = user.displayName; // Google уже возвращает полное имя
-      if (user.photos && user.photos.length > 0) {
-        if (avatarImage) {
-          avatarImage.src = user.photos[0].value;
-          console.log('[DEBUG] Google avatar set:', user.photos[0].value);
-        } else {
-          console.warn('[WARN] Avatar image element not found');
-        }
-      }
-    } else if (user.provider === 'yandex') {
-      // Yandex возвращает first_name и last_name в _json
-      const firstName = user._json.first_name || 'Неизвестно';
-      const lastName = user._json.last_name || '';
-      nickname = `${firstName} ${lastName}`.trim();
-      if (user._json.default_avatar_id) {
-        if (avatarImage) {
-          avatarImage.src = `https://avatars.yandex.net/get-yapic/${user._json.default_avatar_id}/islands-200`;
-          console.log('[DEBUG] Yandex avatar set:', `https://avatars.yandex.net/get-yapic/${user._json.default_avatar_id}/islands-200`);
-        } else {
-          console.warn('[WARN] Avatar image element not found');
-        }
-      }
+function displayUser(user) {
+  let nickname = user.displayName || user.username || 'User';
+  if (user.provider === 'google') {
+    nickname = user.displayName;
+    if (user.photos && user.photos.length > 0) {
+      avatarImage.src = user.photos[0].value;
     }
-    if (nicknameInput) {
-      nicknameInput.value = nickname;
-      console.log('[DEBUG] Nickname set:', nickname);
-    } else {
-      console.warn('[WARN] Nickname input not found');
-    }
-
-    // Добавим кнопку выхода
-    const logoutButton = document.createElement('button');
-    logoutButton.textContent = 'Log Out';
-    logoutButton.className = 'button button-danger';
-    logoutButton.addEventListener('click', () => {
-      console.log('[DEBUG] Logout clicked');
-      window.location.href = '/logout';
-    });
-    const loginSection = document.querySelector('.login-section');
-    if (loginSection) {
-      loginSection.appendChild(logoutButton);
-    } else {
-      console.warn('[WARN] Login section not found');
-    }
-    const loginButtonContainer = document.querySelector('.login-button-container');
-    if (loginButtonContainer) {
-      loginButtonContainer.innerHTML = '';
-    } else {
-      console.warn('[WARN] Login button container not found');
+  } else if (user.provider === 'yandex') {
+    const firstName = user._json.first_name || 'Неизвестно';
+    const lastName = user._json.last_name || '';
+    nickname = `${firstName} ${lastName}`.trim();
+    if (user._json.default_avatar_id) {
+      avatarImage.src = `https://avatars.yandex.net/get-yapic/${user._json.default_avatar_id}/islands-200`;
     }
   }
-
-  // Обработчик кнопки "Connect"
-  connectButton.addEventListener('click', () => {
-    const nickname = nicknameInput.value.trim();
-    const language = languageSelect ? languageSelect.value : 'en'; // Проверка на наличие languageSelect
-    if (nickname) {
-      console.log('[DEBUG] Connect clicked with nickname:', nickname, 'language:', language);
-      socket.emit('joinRoom', 'defaultRoom', nickname);
-    } else {
-      alert('Please enter a nickname');
-      console.log('[DEBUG] Connect failed: No nickname provided');
-    }
+  nicknameInput.value = nickname;
+  const logoutButton = document.createElement('button');
+  logoutButton.textContent = 'Log Out';
+  logoutButton.className = 'button button-danger';
+  logoutButton.addEventListener('click', () => {
+    window.location.href = '/logout';
   });
+  document.querySelector('.login-section').appendChild(logoutButton);
+  document.querySelector('.login-button-container').innerHTML = '';
+}
+
+document.querySelectorAll('.social-button.google').forEach(button => {
+  button.addEventListener('click', () => {
+    window.location.href = '/auth/google';
+  });
+});
+document.querySelectorAll('.social-button.vk').forEach(button => {
+  button.addEventListener('click', () => {
+    window.location.href = '/auth/vk';
+  });
+});
+document.querySelectorAll('.social-button.yandex').forEach(button => {
+  button.addEventListener('click', () => {
+    window.location.href = '/auth/yandex';
+  });
+});
+
+createRoomButton.addEventListener('click', () => {
+  const nickname = nicknameInput.value.trim();
+  const selectedAvatar = localStorage.getItem('selectedAvatar') || 'https://dummyimage.com/100x100?text=Default';
+  let playerId = localStorage.getItem('playerId');
+  if (!playerId) {
+    playerId = `player-${Math.random().toString(36).substr(2, 6)}`;
+    localStorage.setItem('playerId', playerId);
+  }
+  if (nickname) {
+    console.log('[DEBUG] Create Room clicked with:', { nickname, playerId, avatar: selectedAvatar });
+    socket.emit('createRoom', { maxPlayers: 10, spiesCount: 2, nickname, avatar: selectedAvatar, playerId }, (response) => {
+      const { roomId } = response;
+      window.location.href = `${window.BASE_PATH}/room/${roomId}`;
+    });
+  } else {
+    alert('Please enter a nickname');
+  }
+});
 
   // Обработчик кнопки "Create Room"
   createRoomButton.addEventListener('click', () => {
     const nickname = nicknameInput.value.trim();
-    const language = languageSelect ? languageSelect.value : 'en'; // Проверка на наличие languageSelect
+    const selectedAvatar = localStorage.getItem('selectedAvatar') || 'https://dummyimage.com/100x100?text=Default';
+    let playerId = localStorage.getItem('playerId');
+    if (!playerId) {
+      playerId = `player-${Math.random().toString(36).substr(2, 6)}`;
+      localStorage.setItem('playerId', playerId);
+    }
     if (nickname) {
-      console.log('[DEBUG] Create Room clicked with nickname:', nickname, 'language:', language);
-      socket.emit('createRoom', { maxPlayers: 10, spiesCount: 2, nickname }, (response) => {
-        const { roomId, creatorPlayerId } = response;
-        console.log('[DEBUG] Room created:', roomId, 'Creator Player ID:', creatorPlayerId);
-        localStorage.setItem('playerId', creatorPlayerId);
-        window.location.href = `/room/${roomId}`; // Редирект в комнату
+      console.log('[DEBUG] Emitting createRoom with:', { maxPlayers: 10, spiesCount: 2, nickname, avatar: selectedAvatar, playerId });
+      socket.emit('createRoom', { maxPlayers: 10, spiesCount: 2, nickname, avatar: selectedAvatar, playerId }, (response) => {
+        console.log('[DEBUG] createRoom response:', response);
+        const { roomId } = response;
+        window.location.href = `${window.BASE_PATH}/room/${roomId}`;
       });
     } else {
       alert('Please enter a nickname');
-      console.log('[DEBUG] Create Room failed: No nickname provided');
     }
   });
 
@@ -296,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const { roomId, creatorPlayerId } = response;
           console.log('[DEBUG] Room created:', roomId, 'Creator Player ID:', creatorPlayerId);
           localStorage.setItem('playerId', creatorPlayerId);
-          window.location.href = `/room/${roomId}`;
+          window.location.href = `${window.BASE_PATH}/room/${roomId}`; // Используем BASE_PATH для редиректа
         });
       } else {
         alert('Please enter a nickname');
@@ -341,4 +315,3 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     console.warn('[WARN] Some avatar selection elements are missing');
   }
-});

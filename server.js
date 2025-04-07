@@ -16,9 +16,21 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Определяем базовый URL и путь в зависимости от окружения
+const isProduction = process.env.NODE_ENV === 'production';
+const BASE_URL = isProduction ? 'https://b4dcat.ru' : 'http://localhost:3000';
+const BASE_PATH = process.env.BASE_PATH || '/spy'; // Читаем BASE_PATH из .env
+console.log(`Running in ${isProduction ? 'production' : 'development'} mode. BASE_URL: ${BASE_URL}, BASE_PATH: ${BASE_PATH}`);
+
+// Логирование запросов для отладки
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 // Настройка сессий
 const sessionMiddleware = session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
 });
@@ -27,7 +39,7 @@ app.use(sessionMiddleware);
 
 // Делаем сессию доступной для Socket.IO
 io.use(sharedsession(sessionMiddleware, {
-  autoSave: true
+  autoSave: true,
 }));
 
 // Инициализация Passport
@@ -47,7 +59,7 @@ passport.deserializeUser((obj, done) => {
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: 'http://localhost:3001/auth/google/callback',
+  callbackURL: `${BASE_URL}/auth/google/callback`,
 }, (accessToken, refreshToken, profile, done) => {
   return done(null, profile);
 }));
@@ -56,7 +68,7 @@ passport.use(new GoogleStrategy({
 passport.use(new VKontakteStrategy({
   clientID: process.env.VK_CLIENT_ID,
   clientSecret: process.env.VK_CLIENT_SECRET,
-  callbackURL: 'http://localhost:3001/auth/vk/callback',
+  callbackURL: `${BASE_URL}/auth/vk/callback`,
 }, (accessToken, refreshToken, params, profile, done) => {
   return done(null, profile);
 }));
@@ -65,26 +77,26 @@ passport.use(new VKontakteStrategy({
 passport.use(new YandexStrategy({
   clientID: process.env.YANDEX_CLIENT_ID,
   clientSecret: process.env.YANDEX_CLIENT_SECRET,
-  callbackURL: "http://localhost:3001/auth/yandex/callback"
+  callbackURL: `${BASE_URL}/auth/yandex/callback`,
 }, (accessToken, refreshToken, profile, done) => {
-  console.log('Yandex profile:', profile); // Отладочный вывод
+  console.log('Yandex profile:', profile);
   return done(null, profile);
 }));
 
-// Маршруты для авторизации
+// Маршруты для авторизации (оставляем в корне)
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-  res.redirect('/');
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: `${BASE_PATH}/` }), (req, res) => {
+  res.redirect(`${BASE_PATH}/`);
 });
 
 app.get('/auth/vk', passport.authenticate('vkontakte'));
-app.get('/auth/vk/callback', passport.authenticate('vkontakte', { failureRedirect: '/' }), (req, res) => {
-  res.redirect('/');
+app.get('/auth/vk/callback', passport.authenticate('vkontakte', { failureRedirect: `${BASE_PATH}/` }), (req, res) => {
+  res.redirect(`${BASE_PATH}/`);
 });
 
 app.get('/auth/yandex', passport.authenticate('yandex'));
-app.get('/auth/yandex/callback', passport.authenticate('yandex', { failureRedirect: '/' }), (req, res) => {
-  res.redirect('/');
+app.get('/auth/yandex/callback', passport.authenticate('yandex', { failureRedirect: `${BASE_PATH}/` }), (req, res) => {
+  res.redirect(`${BASE_PATH}/`);
 });
 
 // Маршрут для получения данных пользователя
@@ -102,28 +114,47 @@ app.get('/logout', (req, res) => {
     if (err) {
       console.error(err);
     }
-    res.redirect('/');
+    res.redirect(`${BASE_PATH}/`);
   });
 });
 
-// Статические файлы
-app.use(express.static('public'));
+// Маршрут для предоставления BASE_PATH фронтенду
+app.get('/config.js', (req, res) => {
+  res.set('Content-Type', 'application/javascript');
+  res.send(`window.BASE_PATH = "${BASE_PATH}";`);
+});
 
-const rooms = {};
+// Настройка статических файлов для пути BASE_PATH
+app.use(BASE_PATH, express.static(path.join(__dirname, 'public')));
 
-const locations = {
-  default: ['Офис', 'Ресторан', 'Пляж', 'Кинотеатр', 'Парк'],
-  fantasy: ['Замок', 'Лес эльфов', 'Пещера дракона', 'Деревня гномов', 'Башня мага'],
-  'sci-fi': ['Космический корабль', 'База на Марсе', 'Лаборатория', 'Колония', 'Орбитальная станция']
-};
+// Перенаправление BASE_PATH на BASE_PATH/ (добавляем слэш)
+app.get(BASE_PATH, (req, res) => {
+  res.redirect(301, `${BASE_PATH}/`);
+});
 
-app.get('/room/:id', (req, res) => {
+// Обработка маршрута BASE_PATH/
+app.get(`${BASE_PATH}/`, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Обработка маршрута для комнат
+app.get(`${BASE_PATH}/room/:id`, (req, res) => {
   const roomId = req.params.id;
   if (!rooms[roomId]) {
     return res.sendFile(path.join(__dirname, 'public', 'roomNotFound.html'));
   }
   res.sendFile(path.join(__dirname, 'public', 'room.html'));
 });
+
+// Хранилище комнат
+const rooms = {};
+
+// Локации
+const locations = {
+  default: ['Офис', 'Ресторан', 'Пляж', 'Кинотеатр', 'Парк'],
+  fantasy: ['Замок', 'Лес эльфов', 'Пещера дракона', 'Деревня гномов', 'Башня мага'],
+  'sci-fi': ['Космический корабль', 'База на Марсе', 'Лаборатория', 'Колония', 'Орбитальная станция'],
+};
 
 // Периодическая проверка активности создателя комнаты
 setInterval(() => {
@@ -147,53 +178,39 @@ setInterval(() => {
 // Обработка событий Socket.IO
 io.on('connection', (socket) => {
   console.log('Игрок подключился:', socket.id);
-
-  // В обработчике createRoom
-  socket.on('createRoom', ({ maxPlayers, spiesCount, nickname, avatar }, callback) => {
-    const roomId = `room-${Math.random().toString(36).substr(2, 9)}`;
-    const creatorPlayerId = socket.id;
-    const user = socket.handshake.session.passport ? socket.handshake.session.passport.user : null;
-    let avatarUrl = avatar || 'https://dummyimage.com/100x100?text=Default';
-    if (user && !avatar) {
-      if (user.provider === 'google') {
-        if (user.photos && user.photos.length > 0) {
-          avatarUrl = user.photos[0].value;
-        }
-      } else if (user.provider === 'yandex') {
-        if (user._json.default_avatar_id) {
-          avatarUrl = `https://avatars.yandex.net/get-yapic/${user._json.default_avatar_id}/islands-200`;
-        }
-      }
-    }
-    console.log(`[DEBUG] Created room ${roomId}, creator avatarUrl: ${avatarUrl}`);
+  socket.on('createRoom', ({ maxPlayers, spiesCount, nickname, avatar, playerId }, callback) => {
+    const roomId = Math.random().toString(36).substr(2, 9);
+    console.log(`[DEBUG] Created room ${roomId}, creator playerId: ${playerId}`);
     rooms[roomId] = {
-      players: [{ id: socket.id, playerId: creatorPlayerId, name: nickname, isReady: false, isCreator: true, isOut: false, votes: 0, isSpy: false, avatarUrl }],
+      players: [{ id: socket.id, playerId, name: nickname, isReady: false, isCreator: true, isOut: false, votes: 0, isSpy: false, avatarUrl: avatar }],
       roomName: 'Безымянная',
       maxPlayers,
       spiesCount,
       locationTheme: 'default',
       gameTimer: 600,
       spiesKnown: false,
-      creator: creatorPlayerId,
+      creator: playerId,
       started: false,
-      location: null
+      location: null,
     };
     socket.join(roomId);
-    socket.playerId = creatorPlayerId;
-    callback({ roomId, creatorPlayerId });
+    socket.playerId = playerId;
+    callback({ roomId });
+    console.log('[DEBUG] Rooms after creation:', Object.keys(rooms)); // Добавь этот лог
     io.to(roomId).emit('settingsUpdated', {
       roomName: rooms[roomId].roomName,
       maxPlayers: rooms[roomId].maxPlayers,
       spiesCount: rooms[roomId].spiesCount,
       locationTheme: rooms[roomId].locationTheme,
       gameTimer: rooms[roomId].gameTimer,
-      spiesKnown: rooms[roomId].spiesKnown
+      spiesKnown: rooms[roomId].spiesKnown,
     });
   });
 
-  // В обработчике joinRoom
   socket.on('joinRoom', ({ roomId, playerId, avatar }) => {
+    console.log('[DEBUG] Attempting to join room:', roomId, 'playerId:', playerId, 'Available rooms:', Object.keys(rooms));
     if (rooms[roomId]) {
+      console.log('[DEBUG] Room exists. Creator:', rooms[roomId].creator, 'Is creator?', rooms[roomId].creator === playerId);
       const existingPlayer = rooms[roomId].players.find(p => p.playerId === playerId);
       if (existingPlayer) {
         existingPlayer.id = socket.id;
@@ -228,7 +245,7 @@ io.on('connection', (socket) => {
           spiesCount: rooms[roomId].spiesCount,
           locationTheme: rooms[roomId].locationTheme,
           gameTimer: rooms[roomId].gameTimer,
-          spiesKnown: rooms[roomId].spiesKnown
+          spiesKnown: rooms[roomId].spiesKnown,
         });
         if (rooms[roomId].started) {
           const isSpy = existingPlayer.isSpy;
@@ -275,7 +292,7 @@ io.on('connection', (socket) => {
           spiesCount: rooms[roomId].spiesCount,
           locationTheme: rooms[roomId].locationTheme,
           gameTimer: rooms[roomId].gameTimer,
-          spiesKnown: rooms[roomId].spiesKnown
+          spiesKnown: rooms[roomId].spiesKnown,
         });
       }
     } else {
@@ -303,7 +320,7 @@ io.on('connection', (socket) => {
         spiesCount: rooms[roomId].spiesCount,
         locationTheme: rooms[roomId].locationTheme,
         gameTimer: rooms[roomId].gameTimer,
-        spiesKnown: rooms[roomId].spiesKnown
+        spiesKnown: rooms[roomId].spiesKnown,
       });
       io.to(roomId).emit('settingsUpdated', settings);
     }
@@ -328,7 +345,7 @@ io.on('connection', (socket) => {
         spiesCount: rooms[roomId].spiesCount,
         locationTheme: rooms[roomId].locationTheme,
         gameTimer: rooms[roomId].gameTimer,
-        spiesKnown: rooms[roomId].spiesKnown
+        spiesKnown: rooms[roomId].spiesKnown,
       });
       console.log(`[DEBUG] Total players: ${players.length}`);
       console.log(`[DEBUG] Requested spies: ${rooms[roomId].spiesCount}`);
@@ -346,11 +363,11 @@ io.on('connection', (socket) => {
 
       setTimeout(() => {
         if (rooms[roomId] && rooms[roomId].started) {
-          io.to(roomId).emit('gameEnded', { 
-            spiesWin: true, 
-            spies: spyNames, 
+          io.to(roomId).emit('gameEnded', {
+            spiesWin: true,
+            spies: spyNames,
             location: rooms[roomId].location,
-            players: rooms[roomId].players
+            players: rooms[roomId].players,
           });
           rooms[roomId].started = false;
         }
@@ -405,7 +422,7 @@ io.on('connection', (socket) => {
       }
     }
   });
-  
+
   function endVoting(roomId) {
     if (rooms[roomId] && rooms[roomId].started) {
       const votes = rooms[roomId].votes;
@@ -427,20 +444,20 @@ io.on('connection', (socket) => {
           io.to(roomId).emit('playerList', rooms[roomId].players, rooms[roomId].spiesKnown);
           const spiesLeft = rooms[roomId].spies.filter(spyId => !rooms[roomId].players.find(p => p.playerId === spyId)?.isOut).length;
           const nonSpiesLeft = activePlayers.filter(p => !p.isSpy && !p.isOut).length;
-  
+
           if (spiesLeft === 0) {
-            io.to(roomId).emit('spiesLost', { 
-              location: rooms[roomId].location, 
+            io.to(roomId).emit('spiesLost', {
+              location: rooms[roomId].location,
               spies: rooms[roomId].spies.map(id => rooms[roomId].players.find(p => p.playerId === id).name),
-              players: rooms[roomId].players
+              players: rooms[roomId].players,
             });
             rooms[roomId].started = false;
           } else if (nonSpiesLeft === 0 || spiesLeft >= nonSpiesLeft) {
-            io.to(roomId).emit('gameEnded', { 
-              spiesWin: true, 
-              spies: rooms[roomId].spies.map(id => rooms[roomId].players.find(p => p.playerId === id).name), 
+            io.to(roomId).emit('gameEnded', {
+              spiesWin: true,
+              spies: rooms[roomId].spies.map(id => rooms[roomId].players.find(p => p.playerId === id).name),
               location: rooms[roomId].location,
-              players: rooms[roomId].players
+              players: rooms[roomId].players,
             });
             rooms[roomId].started = false;
           }
@@ -517,4 +534,6 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(3001, () => console.log('Сервер на 3001'));
+// Запуск сервера
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
