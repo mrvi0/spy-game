@@ -1,48 +1,57 @@
-name: CI/CD Pipeline
+name: Deploy to Dev
 
 on:
   push:
-    branches:
-      - main
-      - dev
+    branches: [ dev ] # Запускать при пуше в ветку dev
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: [self-hosted, dev] # <-- Указываем метки раннера
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+      # --- Дальнейшие шаги: ---
+      # - name: Setup Node.js (пример)
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: '18'
 
-      - name: Install dependencies
-        run: npm install
+      # - name: Install dependencies
+      #   run: npm ci
 
-      - name: Run ESLint
-        run: npm run lint
+      # - name: Run Linter
+      #   run: npm run lint
 
-  deploy:
-    needs: lint # Выполняется после успешного lint
-    if: github.ref == 'refs/heads/main' # Только для main
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # - name: Run Tests
+      #   run: npm test
 
-      - name: Deploy to VPS
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-        run: |
-          echo "$SSH_PRIVATE_KEY" > private_key
-          chmod 600 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key $VPS_USER@$VPS_HOST << 'EOF'
-            cd /path/to/spy-game
-            git pull origin main
-            npm install
-            pm2 restart spy-game # Или другой способ перезапуска
-          EOF
+      # - name: Build project
+      #   run: npm run build
+
+      # - name: Deploy static files to L2 (пример)
+      #   run: |
+      #     sudo rm -rf /data/main/www/spy/*
+      #     sudo cp -r ./dist/* /data/main/www/spy/
+      #     sudo chown -R 1000:1000 /data/main/www/spy # Установить права, если нужно веб-серверу
+
+      # --- Или шаги для Docker ---
+      # - name: Login to Local Docker Registry
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: localhost:5000
+      #     username: ${{ secrets.DOCKER_USERNAME }} # Если настроил аутентификацию
+      #     password: ${{ secrets.DOCKER_PASSWORD }} # Если настроил аутентификацию
+
+      # - name: Build and Push Docker image
+      #   uses: docker/build-push-action@v4
+      #   with:
+      #     context: .
+      #     push: true
+      #     tags: localhost:5000/spy-dev:latest
+
+      # - name: Deploy using Docker Compose on L2
+      #   run: |
+      #     cd /путь/к/compose/файлу/на/L2 # Возможно, нужно указать путь
+      #     docker compose pull spy-dev
+      #     docker compose up -d --force-recreate spy-dev
