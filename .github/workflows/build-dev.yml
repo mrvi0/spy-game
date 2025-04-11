@@ -26,6 +26,7 @@ jobs:
           # push: false # Не пушим в registry
           load: true   # Загружаем в локальный Docker daemon
           tags: spy-dev-image:latest # Тег для локального образа
+          no-cache: true
 
       # --- ДОБАВЛЕН ШАГ ДЕПЛОЯ ---
       - name: Deploy using Docker Compose on L2
