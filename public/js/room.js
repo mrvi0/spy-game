@@ -1,5 +1,5 @@
 const socket = io();
-const roomId = window.location.pathname.split('/')[3];
+const roomId = window.location.pathname.split('/')[2];
 document.getElementById('roomId').textContent = roomId;
 
 let playerId = localStorage.getItem('playerId');

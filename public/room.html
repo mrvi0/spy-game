@@ -3,18 +3,11 @@
 <head>
   <title id="pageTitle">Комната </title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Подключаем config.js для получения BASE_PATH -->
-  <script src="/config.js"></script>
+  
   <!-- Временные пути, которые будут заменены -->
-  <link id="stylesLink" rel="stylesheet" href="">
-  <link id="roomStylesLink" rel="stylesheet" href="">
-  <script>
-    // Ждём загрузки BASE_PATH и обновляем пути
-    window.addEventListener('load', () => {
-      document.getElementById('stylesLink').href = `${window.BASE_PATH}/css/styles.css`;
-      document.getElementById('roomStylesLink').href = `${window.BASE_PATH}/css/room.css`;
-    });
-  </script>
+  <link id="stylesLink" rel="stylesheet" href="/css/styles.css">
+  <link id="roomStylesLink" rel="stylesheet" href="/css/room.css">
+  
 </head>
 <body>
   <!-- Параллакс-фон -->
@@ -187,19 +180,7 @@
 
   <!-- Подключение скриптов -->
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const script = document.createElement('script');
-      script.src = `${window.BASE_PATH}/js/room.js`;
-      script.onload = () => {
-        console.log('[DEBUG] room.js fully loaded');
-      };
-      script.onerror = () => {
-        console.error('[ERROR] Failed to load room.js');
-      };
-      document.body.appendChild(script);
-    });
-  </script>
-  <script src="/spy/js/parallax.js"></script>
+  <script src="/js/room.js"></script>
+  <script src="/js/parallax.js"></script>
 </body>
 </html>

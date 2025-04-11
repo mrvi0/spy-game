@@ -83,7 +83,7 @@ createRoomButton.addEventListener('click', () => {
     console.log('[DEBUG] Create Room clicked with:', { nickname, playerId, avatar: selectedAvatar });
     socket.emit('createRoom', { maxPlayers: 10, spiesCount: 2, nickname, avatar: selectedAvatar, playerId }, (response) => {
       const { roomId } = response;
-      window.location.href = `${window.BASE_PATH}/room/${roomId}`;
+      window.location.href = `/room/${roomId}`;
     });
   } else {
     alert('Please enter a nickname');
@@ -104,7 +104,7 @@ createRoomButton.addEventListener('click', () => {
       socket.emit('createRoom', { maxPlayers: 10, spiesCount: 2, nickname, avatar: selectedAvatar, playerId }, (response) => {
         console.log('[DEBUG] createRoom response:', response);
         const { roomId } = response;
-        window.location.href = `${window.BASE_PATH}/room/${roomId}`;
+        window.location.href = `/room/${roomId}`;
       });
     } else {
       alert('Please enter a nickname');
@@ -270,7 +270,7 @@ createRoomButton.addEventListener('click', () => {
           const { roomId, creatorPlayerId } = response;
           console.log('[DEBUG] Room created:', roomId, 'Creator Player ID:', creatorPlayerId);
           localStorage.setItem('playerId', creatorPlayerId);
-          window.location.href = `${window.BASE_PATH}/room/${roomId}`; // Используем BASE_PATH для редиректа
+          window.location.href = `/room/${roomId}`; // Используем BASE_PATH для редиректа
         });
       } else {
         alert('Please enter a nickname');
