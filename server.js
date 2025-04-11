@@ -16,6 +16,14 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Логирование входящих запросов (полезно для отладки прокси)
+app.use((req, res, next) => {
+  // req.originalUrl содержит полный путь, который пришел на Node.js (уже после rewrite в NPM)
+  // req.ip показывает IP адрес источника запроса (это будет IP контейнера NPM)
+  console.log(`[${new Date().toISOString()}] Request received: ${req.method} ${req.originalUrl} from ${req.ip}`);
+  next(); // Передаем запрос дальше по цепочке middleware и маршрутов
+});
+
 // Определяем базовый URL и путь в зависимости от окружения
 const isProduction = process.env.NODE_ENV === 'production';
 const BASE_URL = isProduction ? 'https://b4dcat.ru' : 'http://localhost:3001';
