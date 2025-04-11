@@ -19,8 +19,9 @@ const io = new Server(server);
 // Определяем базовый URL и путь в зависимости от окружения
 const isProduction = process.env.NODE_ENV === 'production';
 const BASE_URL = isProduction ? 'https://b4dcat.ru' : 'http://localhost:3001';
-const BASE_PATH = process.env.BASE_PATH || '/spy'; // Читаем BASE_PATH из .env
-console.log(`Running in ${isProduction ? 'production' : 'development'} mode. BASE_URL: ${BASE_URL}, BASE_PATH: ${BASE_PATH}`);
+//const BASE_PATH = process.env.BASE_PATH || '/spy'; // Читаем BASE_PATH из .env
+const BASE_PATH = '';
+console.log(`Running in ${isProduction ? 'production' : 'development'} mode. BASE_URL: ${BASE_URL}`);
 
 // Логирование запросов для отладки
 app.use((req, res, next) => {
@@ -85,18 +86,18 @@ passport.use(new YandexStrategy({
 
 // Маршруты для авторизации (оставляем в корне)
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: `${BASE_PATH}/` }), (req, res) => {
-  res.redirect(`${BASE_PATH}/`);
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: `/` }), (req, res) => {
+  res.redirect(`/`);
 });
 
 app.get('/auth/vk', passport.authenticate('vkontakte'));
-app.get('/auth/vk/callback', passport.authenticate('vkontakte', { failureRedirect: `${BASE_PATH}/` }), (req, res) => {
-  res.redirect(`${BASE_PATH}/`);
+app.get('/auth/vk/callback', passport.authenticate('vkontakte', { failureRedirect: `/` }), (req, res) => {
+  res.redirect(`/`);
 });
 
 app.get('/auth/yandex', passport.authenticate('yandex'));
-app.get('/auth/yandex/callback', passport.authenticate('yandex', { failureRedirect: `${BASE_PATH}/` }), (req, res) => {
-  res.redirect(`${BASE_PATH}/`);
+app.get('/auth/yandex/callback', passport.authenticate('yandex', { failureRedirect: `/` }), (req, res) => {
+  res.redirect(`/`);
 });
 
 // Маршрут для получения данных пользователя
@@ -114,14 +115,14 @@ app.get('/logout', (req, res) => {
     if (err) {
       console.error(err);
     }
-    res.redirect(`${BASE_PATH}/`);
+    res.redirect(`/`);
   });
 });
 
 // Маршрут для предоставления BASE_PATH фронтенду
 app.get('/config.js', (req, res) => {
   res.set('Content-Type', 'application/javascript');
-  res.send(`window.BASE_PATH = "${BASE_PATH}";`);
+  res.send(`window.BASE_PATH = "";`);
 });
 
 // Настройка статических файлов для пути BASE_PATH
@@ -129,16 +130,16 @@ app.use(BASE_PATH, express.static(path.join(__dirname, 'public')));
 
 // Перенаправление BASE_PATH на BASE_PATH/ (добавляем слэш)
 app.get(BASE_PATH, (req, res) => {
-  res.redirect(301, `${BASE_PATH}/`);
+  res.redirect(301, `/`);
 });
 
 // Обработка маршрута BASE_PATH/
-app.get(`${BASE_PATH}/`, (req, res) => {
+app.get(`/`, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Обработка маршрута для комнат
-app.get(`${BASE_PATH}/room/:id`, (req, res) => {
+app.get(`/room/:id`, (req, res) => {
   const roomId = req.params.id;
   if (!rooms[roomId]) {
     return res.sendFile(path.join(__dirname, 'public', 'roomNotFound.html'));
