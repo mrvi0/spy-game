@@ -18,7 +18,7 @@ const io = new Server(server);
 
 // Определяем базовый URL и путь в зависимости от окружения
 const isProduction = process.env.NODE_ENV === 'production';
-const BASE_URL = isProduction ? 'https://b4dcat.ru' : 'http://localhost:3000';
+const BASE_URL = isProduction ? 'https://b4dcat.ru' : 'http://localhost:3001';
 const BASE_PATH = process.env.BASE_PATH || '/spy'; // Читаем BASE_PATH из .env
 console.log(`Running in ${isProduction ? 'production' : 'development'} mode. BASE_URL: ${BASE_URL}, BASE_PATH: ${BASE_PATH}`);
 
