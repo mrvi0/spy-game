@@ -1035,3 +1035,23 @@ body.dark-theme .close {
 .avatar-list img:hover {
   border: 2px solid #6b7280;
 }
+
+.room-list {
+  min-height: 100px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+
+.join-room-input {
+  display: flex;
+  gap: 10px;
+}
+
+.join-room-input input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}

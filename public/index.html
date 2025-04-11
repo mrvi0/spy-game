@@ -100,6 +100,21 @@
       </div>
     </div>
     <div id="popupOverlay" class="overlay"></div>
+
+    <div id="connectModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <span id="closeModal" class="close">&times;</span>
+        <h2>Join a Room</h2>
+        <div id="roomList" class="room-list">
+          <!-- Список комнат (пока пустой) -->
+          <p>No rooms available yet.</p>
+        </div>
+        <div class="join-room-input">
+          <input type="text" id="roomIdInput" placeholder="Enter Room ID" />
+          <button id="joinRoomButton" class="button">Connect</button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- Футер -->
