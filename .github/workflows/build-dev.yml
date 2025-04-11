@@ -1,0 +1,45 @@
+name: Build Dev Docker Image
+
+on:
+  push:
+    branches:
+      - dev # Запускать при пуше в ветку dev
+  workflow_dispatch: # Позволяет запускать вручную с GitHub UI
+
+jobs:
+  build:
+    name: Build Docker Image
+    # Запускаем на нашем self-hosted runner с меткой 'dev'
+    runs-on: [self-hosted, dev]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4 # Используем актуальную версию checkout
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3 # Настраиваем инструмент для сборки Docker
+
+      # Логин в локальный Registry не нужен, если runner на той же машине,
+      # но оставим закомментированным на будущее, если Registry будет требовать auth
+      # - name: Login to Local Docker Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: localhost:5000
+      #     username: ${{ secrets.DOCKER_USERNAME }} # Если есть аутентификация
+      #     password: ${{ secrets.DOCKER_PASSWORD }} # Если есть аутентификация
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: . # Использовать текущую директорию как контекст сборки
+          file: ./Dockerfile # Путь к Dockerfile
+          # push: false # <-- Пока НЕ пушим образ никуда
+          load: true # <-- ЗАГРУЖАЕМ собранный образ в локальный Docker daemon раннера
+          tags: spy-dev-image:latest # Просто тег для локального образа
+
+      - name: Verify Image Build
+        run: |
+          echo "Checking if image exists locally..."
+          docker images spy-dev-image:latest
+          echo "Image built successfully!"
+          # На этом этапе можно было бы запустить контейнер для тестов, если нужно
